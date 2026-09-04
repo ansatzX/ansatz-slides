@@ -1,0 +1,33 @@
+{
+  "basis": "Original illustrative 13-day plan, not historical results",
+  "beats": [
+    {
+      "day": 1,
+      "name": "Brief"
+    },
+    {
+      "day": 3,
+      "name": "Make"
+    },
+    {
+      "day": 5,
+      "name": "Review"
+    },
+    {
+      "day": 7,
+      "name": "Tease"
+    },
+    {
+      "day": 9,
+      "name": "Launch"
+    },
+    {
+      "day": 11,
+      "name": "Listen"
+    },
+    {
+      "day": 13,
+      "name": "Learn"
+    }
+  ]
+}

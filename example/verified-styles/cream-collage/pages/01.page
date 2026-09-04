@@ -1,0 +1,113 @@
+{
+  "pageType": "content",
+  "background": {
+    "type": "solid",
+    "color": "#F3E8D4"
+  },
+  "elements": [
+    {
+      "elementId": "title",
+      "elementType": "text",
+      "bounds": [
+        80,
+        63,
+        810,
+        66
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:34px;color:#171717;font-weight:700\">Build a launch that leaves room to learn.</span></p>"
+      }
+    },
+    {
+      "elementId": "basis",
+      "elementType": "text",
+      "bounds": [
+        80,
+        143,
+        800,
+        32
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:16px;color:#625D54;font-weight:400\">A proposed 13-day sequence — milestones, not measured campaign results.</span></p>"
+      }
+    },
+    {
+      "elementId": "external-evidence",
+      "elementType": "image",
+      "bounds": [
+        80,
+        206,
+        800,
+        195
+      ],
+      "src": "media/evidence.png",
+      "fit": {
+        "mode": "contain"
+      }
+    },
+    {
+      "elementId": "conclusion",
+      "elementType": "text",
+      "bounds": [
+        80,
+        426,
+        810,
+        51
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:24px;color:#F05A39;font-weight:700\">The launch is a midpoint. Listening is part of the plan.</span></p>"
+      }
+    },
+    {
+      "elementId": "source",
+      "elementType": "text",
+      "bounds": [
+        80,
+        511,
+        735,
+        18
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:11px;color:#625D54;font-weight:400\">Source: data.json — original illustrative launch sequence.</span></p>"
+      }
+    },
+    {
+      "elementId": "page",
+      "elementType": "text",
+      "bounds": [
+        853,
+        511,
+        35,
+        18
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:11px;color:#171717;font-weight:400\">01</span></p>"
+      }
+    }
+  ]
+}

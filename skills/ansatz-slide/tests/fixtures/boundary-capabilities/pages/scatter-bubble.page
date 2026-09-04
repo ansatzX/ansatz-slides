@@ -1,0 +1,74 @@
+{
+  "pageType": "content",
+  "background": {"type": "solid", "color": "#F7F9FC"},
+  "elements": [
+    {
+      "elementId": "page-title",
+      "elementType": "text",
+      "bounds": [48, 20, 864, 44],
+      "content": {
+        "text": "Native scatter and bubble regression",
+        "fontSize": 28,
+        "bold": true,
+        "color": "#17324D",
+        "align": ["center", "middle"],
+        "wrap": false
+      }
+    },
+    {
+      "elementId": "scatter",
+      "elementType": "chart",
+      "bounds": [42, 78, 418, 410],
+      "title": {"text": "SCATTER · fixed markers", "fontSize": 18, "color": "#17324D"},
+      "legend": {"show": false},
+      "fill": {"type": "solid", "color": "#FFFFFF"},
+      "border": {"style": "solid", "width": 1, "color": "#C8D4E3"},
+      "xAxis": {"type": "value", "min": 0, "max": 10, "title": "x"},
+      "yAxis": {"type": "value", "min": 0, "max": 100, "title": "y"},
+      "data": {
+        "cols": ["x", "y"],
+        "rows": [[1, 12], [3, 38], [6, 62], [9, 92]]
+      },
+      "series": [
+        {
+          "type": "scatter",
+          "encode": {"x": "x", "y": "y"},
+          "name": "Observed points",
+          "fill": "#2F80ED",
+          "marker": {
+            "shape": "diamond",
+            "size": 14,
+            "fill": "#2F80ED",
+            "border": {"style": "solid", "width": 2, "color": "#17324D"}
+          }
+        }
+      ]
+    },
+    {
+      "elementId": "bubble",
+      "elementType": "chart",
+      "bounds": [500, 78, 418, 410],
+      "title": {"text": "BUBBLE · increasing size", "fontSize": 18, "color": "#17324D"},
+      "legend": {"show": false},
+      "fill": {"type": "solid", "color": "#FFFFFF"},
+      "border": {"style": "solid", "width": 1, "color": "#C8D4E3"},
+      "xAxis": {"type": "value", "min": 0, "max": 10, "title": "x"},
+      "yAxis": {"type": "value", "min": 0, "max": 100, "title": "y"},
+      "data": {
+        "cols": ["x", "y", "size"],
+        "rows": [[1, 18, 10], [3, 42, 30], [6, 67, 60], [9, 88, 100]]
+      },
+      "series": [
+        {
+          "type": "bubble",
+          "encode": {"x": "x", "y": "y", "size": "size"},
+          "name": "Sized observations",
+          "sizeScale": "sqrt",
+          "sizeRange": [8, 38],
+          "fill": "#F2A90099",
+          "border": {"style": "solid", "width": 2, "color": "#7A4E00"}
+        }
+      ]
+    }
+  ]
+}

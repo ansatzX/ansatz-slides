@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# macOS metadata
+.DS_Store
+
+# Packaged artifacts
+*.tgz
+*.zip
+
+# Local skill install metadata
+_user_meta.json
+
+# Local dependency installation (never install globally)
+node_modules/
+
+# Working-dir test/scratch area (never use system /tmp)
+tmp/
+
+# Agent-local workflow state (not part of ansatz-slide)
+.scripts/
+.state-machine/

@@ -1,0 +1,146 @@
+{
+  "pageType": "content",
+  "background": {
+    "type": "solid",
+    "color": "#FFFFFF"
+  },
+  "elements": [
+    {
+      "elementId": "title",
+      "elementType": "text",
+      "bounds": [
+        27,
+        24,
+        908,
+        57
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:32px;color:#172C34;font-weight:700\">A positive quadratic has one global minimum</span></p>"
+      }
+    },
+    {
+      "elementId": "definition",
+      "elementType": "text",
+      "bounds": [
+        35,
+        143,
+        340,
+        42
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:25px;color:#172C34;font-weight:400\">Let f(x) = x², x ∈ R.</span></p>"
+      }
+    },
+    {
+      "elementId": "derivative",
+      "elementType": "text",
+      "bounds": [
+        35,
+        216,
+        330,
+        60
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:26px;color:#0085FD;font-weight:700\">f′(x) = 2x</span></p><p><span style=\"font-size:26px;color:#0085FD;font-weight:700\">f′(0) = 0</span></p>"
+      }
+    },
+    {
+      "elementId": "condition",
+      "elementType": "text",
+      "bounds": [
+        35,
+        318,
+        325,
+        64
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:18px;color:#C32E8F;font-weight:400\">Here f(x) ≥ 0 everywhere;</span></p><p><span style=\"font-size:18px;color:#C32E8F;font-weight:400\">stationarity alone is not enough.</span></p>"
+      }
+    },
+    {
+      "elementId": "external-evidence",
+      "elementType": "image",
+      "bounds": [
+        400,
+        113,
+        530,
+        285
+      ],
+      "src": "media/evidence.png",
+      "fit": {
+        "mode": "contain"
+      }
+    },
+    {
+      "elementId": "theorem-bg",
+      "elementType": "shape",
+      "bounds": [
+        35,
+        438,
+        895,
+        57
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#F1F4F7"
+      }
+    },
+    {
+      "elementId": "theorem",
+      "elementType": "text",
+      "bounds": [
+        50,
+        449,
+        862,
+        37
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:25px;color:#172C34;font-weight:700\">Since x² ≥ 0, equality occurs only at x = 0.</span></p>"
+      }
+    },
+    {
+      "elementId": "source",
+      "elementType": "text",
+      "bounds": [
+        35,
+        516,
+        900,
+        18
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:11px;color:#0085FD;font-weight:400\">Analytic example: y = x²; 201 plotting samples over [-2, 2]. Both axes dimensionless.</span></p>"
+      }
+    }
+  ]
+}

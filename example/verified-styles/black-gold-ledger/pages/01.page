@@ -1,0 +1,227 @@
+{
+  "pageType": "content",
+  "background": {
+    "type": "solid",
+    "color": "#FFFFFF"
+  },
+  "elements": [
+    {
+      "elementId": "top-rule",
+      "elementType": "shape",
+      "bounds": [
+        52,
+        27,
+        856,
+        2
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#0A0A0A"
+      }
+    },
+    {
+      "elementId": "title",
+      "elementType": "text",
+      "bounds": [
+        52,
+        53,
+        856,
+        50
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:30px;color:#0A0A0A;font-weight:700\">Delivery stays 6% below the planned budget</span></p>"
+      }
+    },
+    {
+      "elementId": "basis",
+      "elementType": "text",
+      "bounds": [
+        52,
+        111,
+        856,
+        25
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:15px;color:#606060;font-weight:400\">Illustrative closed-period budget / kUSD / actual minus plan</span></p>"
+      }
+    },
+    {
+      "elementId": "divider",
+      "elementType": "shape",
+      "bounds": [
+        52,
+        153,
+        856,
+        1
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#D6D6D6"
+      }
+    },
+    {
+      "elementId": "external-evidence",
+      "elementType": "image",
+      "bounds": [
+        52,
+        179,
+        570,
+        260
+      ],
+      "src": "media/evidence.png",
+      "fit": {
+        "mode": "contain"
+      }
+    },
+    {
+      "elementId": "rail",
+      "elementType": "shape",
+      "bounds": [
+        658,
+        180,
+        1,
+        250
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#D6D6D6"
+      }
+    },
+    {
+      "elementId": "kpi",
+      "elementType": "text",
+      "bounds": [
+        699,
+        180,
+        200,
+        68
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:42px;color:#D6A000;font-weight:700\">94 kUSD</span></p>"
+      }
+    },
+    {
+      "elementId": "kpi-basis",
+      "elementType": "text",
+      "bounds": [
+        699,
+        250,
+        200,
+        55
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:17px;color:#606060;font-weight:400\">Actual spend</span></p><p><span style=\"font-size:17px;color:#606060;font-weight:400\">100 kUSD planned</span></p>"
+      }
+    },
+    {
+      "elementId": "implication",
+      "elementType": "text",
+      "bounds": [
+        699,
+        335,
+        200,
+        76
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:17px;color:#3D3C3A;font-weight:400\">Do not treat savings</span></p><p><span style=\"font-size:17px;color:#3D3C3A;font-weight:400\">as proof of equal</span></p><p><span style=\"font-size:17px;color:#3D3C3A;font-weight:400\">output quality.</span></p>"
+      }
+    },
+    {
+      "elementId": "verdict",
+      "elementType": "shape",
+      "bounds": [
+        52,
+        452,
+        856,
+        40
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#F0F0F0"
+      }
+    },
+    {
+      "elementId": "verdict-text",
+      "elementType": "text",
+      "bounds": [
+        64,
+        460,
+        830,
+        28
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:19px;color:#0A0A0A;font-weight:700\">Release the balance only after delivery-quality review.</span></p>"
+      }
+    },
+    {
+      "elementId": "source",
+      "elementType": "text",
+      "bounds": [
+        52,
+        508,
+        780,
+        18
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:11px;color:#606060;font-weight:400\">Source: data.json — illustrative budget, not financial guidance.</span></p>"
+      }
+    },
+    {
+      "elementId": "page",
+      "elementType": "text",
+      "bounds": [
+        867,
+        508,
+        45,
+        18
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:11px;color:#606060;font-weight:400\">1 / 1</span></p>"
+      }
+    }
+  ]
+}

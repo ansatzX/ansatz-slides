@@ -1,0 +1,14 @@
+{
+  "basis": "Synthetic weekly completed-item counts, W1-W8",
+  "actual": [
+    30,
+    33,
+    38,
+    42,
+    48,
+    52,
+    58,
+    60
+  ],
+  "w8_target": 60
+}

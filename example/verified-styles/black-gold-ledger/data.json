@@ -1,0 +1,22 @@
+{
+  "basis": "Synthetic closed-period budget in kUSD; not investment advice",
+  "rows": [
+    [
+      "Research",
+      40,
+      38
+    ],
+    [
+      "Production",
+      35,
+      34
+    ],
+    [
+      "Distribution",
+      25,
+      22
+    ]
+  ],
+  "plan_total": 100,
+  "actual_total": 94
+}

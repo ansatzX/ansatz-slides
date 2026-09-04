@@ -1,0 +1,19 @@
+# When .npmignore exists, npm ignores .gitignore for packing.
+# Keep packaging exclusions here even if they already appear in .gitignore.
+
+**/__pycache__/
+**/__pycache__/**
+*.py[cod]
+**/*.py[cod]
+*$py.class
+.pytest_cache/
+
+.DS_Store
+_user_meta.json
+
+*.tgz
+*.zip
+tmp/
+.scripts/
+.state-machine/
+docs/NEXT_RUN.md

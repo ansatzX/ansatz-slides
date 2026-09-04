@@ -1,0 +1,8 @@
+{
+  "basis": "Analytic identity f(x)=x^2, x real; no experimental or statistical claim",
+  "plot_domain": [
+    -2,
+    2
+  ],
+  "samples": 201
+}
