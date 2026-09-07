@@ -1,0 +1,250 @@
+{
+  "signature": "offline-bypass-differential-fixture",
+  "options": {
+    "fonts": [],
+    "customFonts": [],
+    "images": {
+      "wasm-assets/img-0.png": {
+        "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+      }
+    },
+    "fileName": "wasm-replica-differential.pptx",
+    "chartImages": []
+  },
+  "cases": [
+    {
+      "name": "fas-circle-play",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "fas:circle-play",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fas-star",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "fas:star",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fas-heart",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "fas:heart",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fas-check",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "fas:check",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fas-arrow-right",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "fas:arrow-right",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fas-house",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "fas:house",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fab-github",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "fab:github",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "far-square",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "far:square",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fas-unknown",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "icon",
+                "elementId": "icon",
+                "iconName": "fas:unknown",
+                "bounds": [
+                  0,
+                  0,
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

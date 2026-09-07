@@ -1,0 +1,36 @@
+# Python environments and bytecode
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build artifacts
+/build/
+/dist/
+*.egg-info/
+*.whl
+*.tar.gz
+*.tgz
+*.zip
+
+# Test, lint and coverage caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.uv-cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local scratch, research and agent state
+/tmp/
+/research/
+.scripts/
+.state-machine/
+_user_meta.json
+
+# Locally retained dependencies from the retired tooling
+node_modules/
+
+# OS metadata
+.DS_Store

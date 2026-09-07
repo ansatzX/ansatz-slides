@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ansatz-slide"
+version = "0.0.1"
+description = "Python YAML presentation validation, editable PPTX export and page-preserving edits"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = ["PyYAML==6.0.3"]
+
+[project.scripts]
+ansatz-slide = "ansatz_slide.cli:main"
+
+[tool.hatch.build]
+exclude = [
+    "/skills/ansatz-slide/tests/**",
+    "**/__pycache__/**",
+    "**/*.py[cod]",
+    "**/.DS_Store",
+    "**/_user_meta.json",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ansatz_slide"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"skills/ansatz-slide" = "ansatz_slide/skill"
+
+[tool.hatch.build.targets.sdist]
+only-include = [
+    "src/ansatz_slide",
+    "skills/ansatz-slide",
+    "tests",
+    "scripts/verify_distribution.py",
+    "pyproject.toml",
+    "uv.lock",
+    "README.md",
+    "LICENSE",
+]

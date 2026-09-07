@@ -1,0 +1,218 @@
+{
+  "pageType": "content",
+  "background": {
+    "type": "solid",
+    "color": "#06070B"
+  },
+  "elements": [
+    {
+      "elementId": "ownership",
+      "elementType": "text",
+      "bounds": [
+        57,
+        22,
+        500,
+        22
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:12px;color:#969DA3;font-weight:400\">OPERATIONS / WEEKLY DELIVERY</span></p>"
+      }
+    },
+    {
+      "elementId": "report-id",
+      "elementType": "text",
+      "bounds": [
+        774,
+        22,
+        150,
+        22
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:12px;color:#969DA3;font-weight:400\">DEMO • 8 WEEKS</span></p>"
+      }
+    },
+    {
+      "elementId": "title",
+      "elementType": "text",
+      "bounds": [
+        57,
+        84,
+        852,
+        49
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:30px;color:#F7F8FA;font-weight:700\">Weekly throughput reaches the 60-item target</span></p>"
+      }
+    },
+    {
+      "elementId": "basis",
+      "elementType": "text",
+      "bounds": [
+        57,
+        137,
+        850,
+        25
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:15px;color:#969DA3;font-weight:400\">Illustrative completed items / W1–W8 / constant counting rule</span></p>"
+      }
+    },
+    {
+      "elementId": "kpi",
+      "elementType": "text",
+      "bounds": [
+        57,
+        205,
+        230,
+        60
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:43px;color:#B8ECF9;font-weight:700\">100%</span></p>"
+      }
+    },
+    {
+      "elementId": "kpi-basis",
+      "elementType": "text",
+      "bounds": [
+        57,
+        269,
+        240,
+        65
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:18px;color:#C6CCD3;font-weight:400\">W8 actual: 60 items</span></p><p><span style=\"font-size:18px;color:#C6CCD3;font-weight:400\">W8 target: 60 items</span></p>"
+      }
+    },
+    {
+      "elementId": "caveat",
+      "elementType": "text",
+      "bounds": [
+        57,
+        350,
+        245,
+        70
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:16px;color:#DFA93C;font-weight:400\">Throughput alone does</span></p><p><span style=\"font-size:16px;color:#DFA93C;font-weight:400\">not establish quality</span></p><p><span style=\"font-size:16px;color:#DFA93C;font-weight:400\">or a causal improvement.</span></p>"
+      }
+    },
+    {
+      "elementId": "external-evidence",
+      "elementType": "image",
+      "bounds": [
+        320,
+        171,
+        590,
+        265
+      ],
+      "src": "media/evidence.png",
+      "fit": {
+        "mode": "contain"
+      }
+    },
+    {
+      "elementId": "bottom-rule",
+      "elementType": "shape",
+      "bounds": [
+        57,
+        461,
+        846,
+        1
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#1A222C"
+      }
+    },
+    {
+      "elementId": "conclusion",
+      "elementType": "text",
+      "bounds": [
+        57,
+        474,
+        847,
+        30
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:19px;color:#F7F8FA;font-weight:700\">Keep the target; add an independent quality check before scaling.</span></p>"
+      }
+    },
+    {
+      "elementId": "source",
+      "elementType": "text",
+      "bounds": [
+        57,
+        518,
+        780,
+        18
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:10px;color:#969DA3;font-weight:400\">Source: data.json — synthetic weekly counts; no forecast shown.</span></p>"
+      }
+    },
+    {
+      "elementId": "page",
+      "elementType": "text",
+      "bounds": [
+        859,
+        518,
+        60,
+        18
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:10px;color:#969DA3;font-weight:400\">01 / 01</span></p>"
+      }
+    }
+  ]
+}

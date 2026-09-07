@@ -1,0 +1,11 @@
+{
+  "version": "v2",
+  "title": "Connect a derivative to the global minimum",
+  "size": [
+    960,
+    540
+  ],
+  "pages": [
+    "pages/01.page.yaml"
+  ]
+}

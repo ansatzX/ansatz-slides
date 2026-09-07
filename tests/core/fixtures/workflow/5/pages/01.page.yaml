@@ -1,0 +1,230 @@
+{
+  "pageType": "content",
+  "background": {
+    "type": "solid",
+    "color": "#2C2C2C"
+  },
+  "elements": [
+    {
+      "elementId": "kicker",
+      "elementType": "shape",
+      "bounds": [
+        48,
+        27,
+        144,
+        24
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#125E42"
+      }
+    },
+    {
+      "elementId": "section",
+      "elementType": "text",
+      "bounds": [
+        57,
+        30,
+        140,
+        22
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:12px;color:#F3F3F3;font-weight:700\">01 / CAPABILITY</span></p>"
+      }
+    },
+    {
+      "elementId": "title",
+      "elementType": "text",
+      "bounds": [
+        48,
+        72,
+        865,
+        55
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:32px;color:#F3F3F3;font-weight:700\">Governance is the first readiness gap</span></p>"
+      }
+    },
+    {
+      "elementId": "basis",
+      "elementType": "text",
+      "bounds": [
+        48,
+        125,
+        860,
+        25
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:15px;color:#B7B7B7;font-weight:400\">Illustrative assessment / readiness score, 0–100 / not measured company data</span></p>"
+      }
+    },
+    {
+      "elementId": "divider",
+      "elementType": "shape",
+      "bounds": [
+        48,
+        162,
+        864,
+        1
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#59665F"
+      }
+    },
+    {
+      "elementId": "external-evidence",
+      "elementType": "image",
+      "bounds": [
+        48,
+        185,
+        510,
+        235
+      ],
+      "src": "media/evidence.png",
+      "fit": {
+        "mode": "contain"
+      }
+    },
+    {
+      "elementId": "take1",
+      "elementType": "text",
+      "bounds": [
+        603,
+        190,
+        305,
+        47
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:20px;color:#86C5AA;font-weight:700\">01  Tools lead at 70%</span></p>"
+      }
+    },
+    {
+      "elementId": "take2",
+      "elementType": "text",
+      "bounds": [
+        603,
+        247,
+        305,
+        62
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:18px;color:#F3F3F3;font-weight:400\">02  Talent needs a</span></p><p><span style=\"font-size:18px;color:#F3F3F3;font-weight:400\">       practical training pilot</span></p>"
+      }
+    },
+    {
+      "elementId": "take3",
+      "elementType": "text",
+      "bounds": [
+        603,
+        323,
+        305,
+        68
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:18px;color:#F3F3F3;font-weight:400\">03  Agree ownership before</span></p><p><span style=\"font-size:18px;color:#F3F3F3;font-weight:400\">       extending automation</span></p>"
+      }
+    },
+    {
+      "elementId": "conclusion-bg",
+      "elementType": "shape",
+      "bounds": [
+        48,
+        443,
+        864,
+        43
+      ],
+      "shapeName": "rect",
+      "fill": {
+        "type": "solid",
+        "color": "#0A3021"
+      }
+    },
+    {
+      "elementId": "conclusion",
+      "elementType": "text",
+      "bounds": [
+        61,
+        451,
+        835,
+        30
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:20px;color:#F3F3F3;font-weight:700\">Start with accountable decisions, then scale the tooling.</span></p>"
+      }
+    },
+    {
+      "elementId": "source",
+      "elementType": "text",
+      "bounds": [
+        48,
+        507,
+        800,
+        20
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:11px;color:#B7B7B7;font-weight:400\">Source: data.json — synthetic scores for this layout demonstration.</span></p>"
+      }
+    },
+    {
+      "elementId": "page",
+      "elementType": "text",
+      "bounds": [
+        878,
+        507,
+        45,
+        20
+      ],
+      "content": {
+        "fontFamily": "Arial",
+        "align": [
+          "left",
+          "top"
+        ],
+        "text": "<p><span style=\"font-size:11px;color:#B7B7B7;font-weight:400\">01 / 01</span></p>"
+      }
+    }
+  ]
+}

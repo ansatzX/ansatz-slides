@@ -1,0 +1,11 @@
+{
+  "version": "v2",
+  "title": "Budget evidence with explicit basis",
+  "size": [
+    960,
+    540
+  ],
+  "pages": [
+    "pages/01.page.yaml"
+  ]
+}

@@ -1,0 +1,355 @@
+{
+  "signature": "offline-bypass-differential-fixture",
+  "options": {
+    "fonts": [],
+    "customFonts": [],
+    "images": {
+      "wasm-assets/img-0.png": {
+        "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+      },
+      "test.svg": {
+        "base64": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAxMjAgODAiPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIGZpbGw9InJlZCIvPjwvc3ZnPg=="
+      }
+    },
+    "fileName": "wasm-replica-differential.pptx",
+    "chartImages": []
+  },
+  "cases": [
+    {
+      "name": "math-0",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\frac{a+b}{c}\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-1",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\sqrt{x}\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-2",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(x_i^2\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-3",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\alpha+\\beta\\leq\\gamma\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-4",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\sum_{i=1}^{n} x_i\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-5",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\int_0^1 f(x)\\,dx\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-6",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\left(x+1\\right)\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-7",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\mathbf{x}+\\mathrm{d}x\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-8",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-9",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\sqrt[3]{x}\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-10",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\overline{x}\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "math-11",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  0,
+                  0,
+                  500,
+                  100
+                ],
+                "content": {
+                  "text": "\\(\\hat{x}\\)"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1237 @@
+{
+  "signature": "offline-bypass-differential-fixture",
+  "options": {
+    "fonts": [],
+    "customFonts": [],
+    "images": {
+      "wasm-assets/img-0.png": {
+        "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+      }
+    },
+    "fileName": "wasm-replica-differential.pptx",
+    "chartImages": []
+  },
+  "cases": [
+    {
+      "name": "theme-text",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "text-1",
+                "elementType": "text",
+                "bounds": [
+                  72,
+                  80,
+                  816,
+                  120
+                ],
+                "content": {
+                  "text": "<p>Theme</p>",
+                  "style": "$heading"
+                }
+              }
+            ]
+          }
+        ],
+        "theme": {
+          "colors": {
+            "primary": "#123456",
+            "accent": "#789abc"
+          },
+          "textStyles": {
+            "heading": {
+              "fontSize": 30,
+              "fontFamily": "Arial",
+              "color": "$primary",
+              "bold": true
+            }
+          },
+          "tableStyles": {
+            "striped": {
+              "cellStyle": {
+                "fontSize": 19,
+                "color": "$primary"
+              },
+              "firstRowStyle": {
+                "bold": true,
+                "fill": {
+                  "type": "solid",
+                  "color": "$accent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "theme-table",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "table-1",
+                "elementType": "table",
+                "bounds": [
+                  120,
+                  100,
+                  720,
+                  240
+                ],
+                "columnWidths": [
+                  0.5,
+                  0.5
+                ],
+                "rowHeights": [
+                  0.5,
+                  0.5
+                ],
+                "rows": [
+                  [
+                    {
+                      "text": "A"
+                    },
+                    {
+                      "text": "B"
+                    }
+                  ],
+                  [
+                    {
+                      "text": "C"
+                    },
+                    {
+                      "text": "D"
+                    }
+                  ]
+                ],
+                "style": "$striped"
+              }
+            ]
+          }
+        ],
+        "theme": {
+          "colors": {
+            "primary": "#123456",
+            "accent": "#789abc"
+          },
+          "textStyles": {
+            "heading": {
+              "fontSize": 30,
+              "fontFamily": "Arial",
+              "color": "$primary",
+              "bold": true
+            }
+          },
+          "tableStyles": {
+            "striped": {
+              "cellStyle": {
+                "fontSize": 19,
+                "color": "$primary"
+              },
+              "firstRowStyle": {
+                "bold": true,
+                "fill": {
+                  "type": "solid",
+                  "color": "$accent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "gradient-linear",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "shape-1",
+                "elementType": "shape",
+                "bounds": [
+                  72,
+                  80,
+                  360,
+                  180
+                ],
+                "shapeName": "roundRect",
+                "adjustments": [
+                  18000
+                ],
+                "fill": {
+                  "type": "gradient",
+                  "gradientType": "linear",
+                  "angle": 15,
+                  "stops": [
+                    {
+                      "position": 0,
+                      "color": "#000000"
+                    },
+                    {
+                      "position": 1,
+                      "color": "#ffffff"
+                    }
+                  ]
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 2,
+                  "color": "#173B67"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "gradient-radial",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "shape-1",
+                "elementType": "shape",
+                "bounds": [
+                  72,
+                  80,
+                  360,
+                  180
+                ],
+                "shapeName": "roundRect",
+                "adjustments": [
+                  18000
+                ],
+                "fill": {
+                  "type": "gradient",
+                  "gradientType": "radial",
+                  "angle": 15,
+                  "stops": [
+                    {
+                      "position": 0,
+                      "color": "#000000"
+                    },
+                    {
+                      "position": 1,
+                      "color": "#ffffff"
+                    }
+                  ]
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 2,
+                  "color": "#173B67"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "image-fill",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "image-1",
+                "elementType": "image",
+                "bounds": [
+                  240,
+                  90,
+                  480,
+                  300
+                ],
+                "src": "wasm-assets/img-0.png",
+                "fit": {
+                  "mode": "fill"
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 1,
+                  "color": "#172C34"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "image-cover",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "image-1",
+                "elementType": "image",
+                "bounds": [
+                  240,
+                  90,
+                  480,
+                  300
+                ],
+                "src": "wasm-assets/img-0.png",
+                "fit": {
+                  "mode": "cover"
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 1,
+                  "color": "#172C34"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "image-contain",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "image-1",
+                "elementType": "image",
+                "bounds": [
+                  240,
+                  90,
+                  480,
+                  300
+                ],
+                "src": "wasm-assets/img-0.png",
+                "fit": {
+                  "mode": "contain"
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 1,
+                  "color": "#172C34"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "image-crop",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "image-1",
+                "elementType": "image",
+                "bounds": [
+                  240,
+                  90,
+                  480,
+                  300
+                ],
+                "src": "wasm-assets/img-0.png",
+                "fit": {
+                  "mode": "contain"
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 1,
+                  "color": "#172C34"
+                },
+                "crop": {
+                  "left": 0.1,
+                  "right": 0.2,
+                  "top": 0.05,
+                  "bottom": 0.15
+                },
+                "opacity": 0.4,
+                "rotation": 12,
+                "cropShape": {
+                  "shapeName": "ellipse"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "background-image",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "text-1",
+                "elementType": "text",
+                "bounds": [
+                  72,
+                  80,
+                  816,
+                  120
+                ],
+                "content": {
+                  "fontFamily": "Arial",
+                  "fontSize": 24,
+                  "color": "#172C34",
+                  "bold": true,
+                  "text": "<p>Differential <strong>text</strong> fixture</p>"
+                }
+              }
+            ],
+            "background": {
+              "type": "image",
+              "src": "wasm-assets/img-0.png",
+              "fit": {
+                "mode": "cover"
+              },
+              "opacity": 0.7
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "line-sharp",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "l",
+                "elementType": "line",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  200
+                ],
+                "viewBox": [
+                  100,
+                  100
+                ],
+                "points": "0,0 50,100 100,20",
+                "curve": "sharp",
+                "border": {
+                  "width": 2,
+                  "color": "#778899"
+                },
+                "arrow": [
+                  "triangle",
+                  "arrow"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "line-round",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "l",
+                "elementType": "line",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  200
+                ],
+                "viewBox": [
+                  100,
+                  100
+                ],
+                "points": "0,0 50,100 100,20",
+                "curve": "round",
+                "border": {
+                  "width": 2,
+                  "color": "#778899"
+                },
+                "arrow": [
+                  "triangle",
+                  "arrow"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "line-smooth",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "l",
+                "elementType": "line",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  200
+                ],
+                "viewBox": [
+                  100,
+                  100
+                ],
+                "points": "0,0 50,100 100,20",
+                "curve": "smooth",
+                "border": {
+                  "width": 2,
+                  "color": "#778899"
+                },
+                "arrow": [
+                  "triangle",
+                  "arrow"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "path-quad",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "shape-1",
+                "elementType": "shape",
+                "bounds": [
+                  72,
+                  80,
+                  360,
+                  180
+                ],
+                "shapeName": "custom",
+                "fill": {
+                  "type": "solid",
+                  "color": "#2F80ED"
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 2,
+                  "color": "#173B67"
+                },
+                "path": "M0 0 Q50 100 100 0",
+                "viewBox": [
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "path-cubic",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "shape-1",
+                "elementType": "shape",
+                "bounds": [
+                  72,
+                  80,
+                  360,
+                  180
+                ],
+                "shapeName": "custom",
+                "fill": {
+                  "type": "solid",
+                  "color": "#2F80ED"
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 2,
+                  "color": "#173B67"
+                },
+                "path": "M0 0 C20 100 80 100 100 0",
+                "viewBox": [
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "path-arc",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "shape-1",
+                "elementType": "shape",
+                "bounds": [
+                  72,
+                  80,
+                  360,
+                  180
+                ],
+                "shapeName": "custom",
+                "fill": {
+                  "type": "solid",
+                  "color": "#2F80ED"
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 2,
+                  "color": "#173B67"
+                },
+                "path": "M0 50 A50 50 0 0 1 100 50",
+                "viewBox": [
+                  100,
+                  100
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rich-plain",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "text-1",
+                "elementType": "text",
+                "bounds": [
+                  72,
+                  80,
+                  816,
+                  120
+                ],
+                "content": {
+                  "fontFamily": "Arial",
+                  "fontSize": 24,
+                  "color": "#172C34",
+                  "bold": true,
+                  "text": "one\ntwo"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rich-ordered",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "text-1",
+                "elementType": "text",
+                "bounds": [
+                  72,
+                  80,
+                  816,
+                  120
+                ],
+                "content": {
+                  "fontFamily": "Arial",
+                  "fontSize": 24,
+                  "color": "#172C34",
+                  "bold": true,
+                  "text": "<ol><li>One</li><li>Two<ul><li>Nested</li></ul></li></ol>"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rich-css",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "text-1",
+                "elementType": "text",
+                "bounds": [
+                  72,
+                  80,
+                  816,
+                  120
+                ],
+                "content": {
+                  "fontFamily": "Arial",
+                  "fontSize": 24,
+                  "color": "#172C34",
+                  "bold": true,
+                  "text": "<p><span style=\"font-size:28px;color:#ff0000;letter-spacing:1px\">CSS</span></p>"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rich-gradient",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "text-1",
+                "elementType": "text",
+                "bounds": [
+                  72,
+                  80,
+                  816,
+                  120
+                ],
+                "content": {
+                  "fontFamily": "Arial",
+                  "fontSize": 24,
+                  "color": "#172C34",
+                  "bold": true,
+                  "text": "Gradient",
+                  "gradient": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "angle": 0,
+                    "stops": [
+                      {
+                        "position": 0,
+                        "color": "#ff0000"
+                      },
+                      {
+                        "position": 1,
+                        "color": "#0000ff"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "rich-shadow",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "text-1",
+                "elementType": "text",
+                "bounds": [
+                  72,
+                  80,
+                  816,
+                  120
+                ],
+                "content": {
+                  "fontFamily": "Arial",
+                  "fontSize": 24,
+                  "color": "#172C34",
+                  "bold": true,
+                  "text": "Shadow",
+                  "shadow": {
+                    "blur": 3,
+                    "color": "#00000080",
+                    "offset": [
+                      2,
+                      3
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "table-merge",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "table-1",
+                "elementType": "table",
+                "bounds": [
+                  120,
+                  100,
+                  720,
+                  240
+                ],
+                "columnWidths": [
+                  0.5,
+                  0.5
+                ],
+                "rowHeights": [
+                  0.5,
+                  0.5
+                ],
+                "rows": [
+                  [
+                    {
+                      "text": "Merged",
+                      "colSpan": 2
+                    },
+                    {}
+                  ],
+                  [
+                    {
+                      "text": "C"
+                    },
+                    {
+                      "text": "D"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "table-rich",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "table-1",
+                "elementType": "table",
+                "bounds": [
+                  120,
+                  100,
+                  720,
+                  240
+                ],
+                "columnWidths": [
+                  0.5,
+                  0.5
+                ],
+                "rowHeights": [
+                  0.5,
+                  0.5
+                ],
+                "rows": [
+                  [
+                    {
+                      "text": "<p>A <strong>B</strong></p><p>C</p>",
+                      "align": [
+                        "left",
+                        "top"
+                      ],
+                      "border": {
+                        "width": 2,
+                        "color": "#123456",
+                        "style": "dash"
+                      },
+                      "fontFamily": "Arial",
+                      "fontSize": 20
+                    },
+                    {
+                      "text": "Value",
+                      "bold": true,
+                      "fill": {
+                        "type": "solid",
+                        "color": "#DCE6F2"
+                      }
+                    }
+                  ],
+                  [
+                    {
+                      "text": "score"
+                    },
+                    {
+                      "text": "42",
+                      "align": [
+                        "right",
+                        "middle"
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-labels",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "quarter",
+                    "revenue"
+                  ],
+                  "rows": [
+                    [
+                      "Q1",
+                      12
+                    ],
+                    [
+                      "Q2",
+                      18
+                    ],
+                    [
+                      "Q3",
+                      15
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "quarter",
+                      "y": "revenue"
+                    },
+                    "name": "Revenue",
+                    "fill": "#2F80ED"
+                  }
+                ],
+                "title": "Revenue",
+                "legend": false,
+                "dataLabels": {
+                  "show": true,
+                  "content": "value"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-stack",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "quarter",
+                    "revenue"
+                  ],
+                  "rows": [
+                    [
+                      "Q1",
+                      12
+                    ],
+                    [
+                      "Q2",
+                      18
+                    ],
+                    [
+                      "Q3",
+                      15
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "quarter",
+                      "y": "revenue"
+                    },
+                    "stack": "normal"
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "quarter",
+                      "y": "revenue"
+                    },
+                    "stack": "normal"
+                  }
+                ],
+                "title": "Revenue",
+                "legend": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-width",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "quarter",
+                    "revenue"
+                  ],
+                  "rows": [
+                    [
+                      "Q1",
+                      12
+                    ],
+                    [
+                      "Q2",
+                      18
+                    ],
+                    [
+                      "Q3",
+                      15
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "quarter",
+                      "y": "revenue"
+                    },
+                    "name": "Revenue",
+                    "fill": "#2F80ED"
+                  }
+                ],
+                "title": "Revenue",
+                "legend": false,
+                "barWidth": 0.3,
+                "barGap": 0.2,
+                "categoryGap": 0.4
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-axes",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "quarter",
+                    "revenue"
+                  ],
+                  "rows": [
+                    [
+                      "Q1",
+                      12
+                    ],
+                    [
+                      "Q2",
+                      18
+                    ],
+                    [
+                      "Q3",
+                      15
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "quarter",
+                      "y": "revenue"
+                    },
+                    "name": "Revenue",
+                    "fill": "#2F80ED"
+                  }
+                ],
+                "title": "Revenue",
+                "legend": false,
+                "xAxis": {
+                  "show": false
+                },
+                "yAxis": {
+                  "min": -10,
+                  "max": 40,
+                  "reverse": true,
+                  "label": false,
+                  "gridLine": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

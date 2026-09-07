@@ -1,0 +1,104 @@
+{
+  "signature": "offline-bypass-differential-fixture",
+  "options": {
+    "fonts": [],
+    "customFonts": [],
+    "images": {
+      "wasm-assets/img-0.png": {
+        "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+      },
+      "test.svg": {
+        "base64": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAxMjAgODAiPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIGZpbGw9InJlZCIvPjwvc3ZnPg=="
+      }
+    },
+    "fileName": "wasm-replica-differential.pptx",
+    "chartImages": []
+  },
+  "cases": [
+    {
+      "name": "svg",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "image",
+                "elementId": "i",
+                "src": "test.svg",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  200
+                ],
+                "fit": {
+                  "mode": "contain"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "formula",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  200
+                ],
+                "content": {
+                  "text": "<p>Energy \\(E=mc^2\\)</p>"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "multi-paragraph",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementType": "text",
+                "elementId": "t",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  200
+                ],
+                "content": {
+                  "text": "<p>A</p><p></p><p>B</p>"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

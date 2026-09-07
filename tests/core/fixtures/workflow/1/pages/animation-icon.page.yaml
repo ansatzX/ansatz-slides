@@ -1,0 +1,93 @@
+{
+  "pageType": "content",
+  "background": {"type": "solid", "color": "#F7F9FC"},
+  "elements": [
+    {
+      "elementId": "anim-panel",
+      "elementType": "shape",
+      "bounds": [100, 140, 600, 220],
+      "shapeName": "roundRect",
+      "adjustments": [16000],
+      "fill": {"type": "solid", "color": "#EAF2F8"},
+      "border": {"style": "solid", "width": 2, "color": "#2F80ED"}
+    },
+    {
+      "elementId": "anim-title",
+      "elementType": "text",
+      "bounds": [140, 176, 500, 60],
+      "content": {
+        "text": "Animation serialization",
+        "fontSize": 34,
+        "bold": true,
+        "color": "#17324D",
+        "align": ["center", "middle"],
+        "wrap": false
+      }
+    },
+    {
+      "elementId": "anim-body",
+      "elementType": "text",
+      "bounds": [150, 250, 500, 58],
+      "content": {
+        "text": "entrance → emphasis → motion",
+        "fontSize": 22,
+        "color": "#182230",
+        "align": ["center", "middle"],
+        "wrap": false
+      }
+    },
+    {
+      "elementId": "anim-line",
+      "elementType": "line",
+      "bounds": [170, 410, 460, 2],
+      "viewBox": [1, 1],
+      "points": "0,0.5 1,0.5",
+      "arrow": [null, "arrow"],
+      "border": {"style": "solid", "width": 3, "color": "#F2A900"}
+    },
+    {
+      "elementId": "anim-icon",
+      "elementType": "icon",
+      "bounds": [770, 190, 90, 90],
+      "iconName": "fas:circle-play",
+      "fill": {"type": "solid", "color": "#F2A900"}
+    }
+  ],
+  "animations": [
+    {
+      "elementId": "anim-title",
+      "effect": "fade-in",
+      "trigger": "onClick",
+      "durationMs": 400,
+      "easing": "ease-out"
+    },
+    {
+      "elementId": "anim-panel",
+      "effect": "fly-in",
+      "trigger": "withPrevious",
+      "direction": "right",
+      "durationMs": 500
+    },
+    {
+      "elementId": "anim-icon",
+      "effect": "pulse",
+      "trigger": "afterPrevious",
+      "repeat": 2,
+      "durationMs": 600
+    },
+    {
+      "elementId": "anim-panel",
+      "effect": "fill-color",
+      "trigger": "afterPrevious",
+      "color": "#F2A900",
+      "durationMs": 800
+    },
+    {
+      "elementId": "anim-line",
+      "effect": "motion-path",
+      "trigger": "afterPrevious",
+      "path": "M 0 0 L 140 0",
+      "durationMs": 900
+    }
+  ]
+}

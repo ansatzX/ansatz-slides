@@ -1,0 +1,57 @@
+{
+  "signature": "offline-bypass-differential-fixture",
+  "options": {
+    "fonts": [],
+    "customFonts": [],
+    "images": {
+      "wasm-assets/img-0.png": {
+        "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+      }
+    },
+    "fileName": "wasm-replica-differential.pptx",
+    "chartImages": []
+  },
+  "cases": [
+    {
+      "name": "shape-image-fill",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "shape-1",
+                "elementType": "shape",
+                "bounds": [
+                  72,
+                  80,
+                  360,
+                  180
+                ],
+                "shapeName": "roundRect",
+                "adjustments": [
+                  18000
+                ],
+                "fill": {
+                  "type": "image",
+                  "src": "wasm-assets/img-0.png",
+                  "fit": {
+                    "mode": "cover"
+                  }
+                },
+                "border": {
+                  "style": "solid",
+                  "width": 2,
+                  "color": "#173B67"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+version: v2
+title: Boundary capability regression
+size: [960, 540]
+pages:
+  - pages/scatter-bubble.page.yaml
+  - pages/animation-icon.page.yaml

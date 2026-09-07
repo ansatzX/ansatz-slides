@@ -1,0 +1,826 @@
+{
+  "signature": "offline-bypass-differential-fixture",
+  "options": {
+    "fonts": [],
+    "customFonts": [],
+    "images": {
+      "wasm-assets/img-0.png": {
+        "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+      }
+    },
+    "fileName": "wasm-replica-differential.pptx",
+    "chartImages": []
+  },
+  "cases": [
+    {
+      "name": "bar-symbol",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    },
+                    "symbol": "circle"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bar-percent",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    },
+                    "stack": "percent"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "line-null",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "line",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    },
+                    "nullHandling": "connect"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "line-smooth",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "line",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    },
+                    "smooth": true,
+                    "lineStyle": "dash",
+                    "width": 3,
+                    "marker": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "area-marker",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "area",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    },
+                    "marker": {
+                      "shape": "rect",
+                      "size": 12
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "radar-filled",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "radar",
+                    "encode": {
+                      "category": "x",
+                      "y": "y"
+                    },
+                    "areaColor": "#ff000080"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "pie-ring",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "pie",
+                    "encode": {
+                      "category": "x",
+                      "value": "y"
+                    },
+                    "innerRadius": 0.5,
+                    "startAngle": 30
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bar-series-label",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    },
+                    "dataLabels": {
+                      "show": true,
+                      "content": "value",
+                      "fontSize": 14,
+                      "color": "#123456"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "category-gap",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  }
+                ],
+                "categoryGap": 0.5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "bar-gap",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  }
+                ],
+                "barGap": 0.3
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "multi",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "line",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    },
+                    "yAxisIndex": 1
+                  }
+                ],
+                "yAxis": [
+                  {},
+                  {
+                    "min": 0,
+                    "max": 100
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "palette",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  },
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1536 @@
+{
+  "signature": "offline-bypass-differential-fixture",
+  "options": {
+    "fonts": [],
+    "customFonts": [],
+    "images": {
+      "wasm-assets/img-0.png": {
+        "base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+      }
+    },
+    "fileName": "wasm-replica-differential.pptx",
+    "chartImages": []
+  },
+  "cases": [
+    {
+      "name": "chart-bar",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bar",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-line",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "line",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-area",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "area",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-scatter",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      1,
+                      12,
+                      4
+                    ],
+                    [
+                      2,
+                      18,
+                      9
+                    ],
+                    [
+                      3,
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "scatter",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-bubble",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      1,
+                      12,
+                      4
+                    ],
+                    [
+                      2,
+                      18,
+                      9
+                    ],
+                    [
+                      3,
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "bubble",
+                    "encode": {
+                      "x": "x",
+                      "y": "y",
+                      "size": "size"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-pie",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "pie",
+                    "encode": {
+                      "category": "x",
+                      "value": "y"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-radar",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "radar",
+                    "encode": {
+                      "category": "x",
+                      "y": "y"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "chart-waterfall",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "chart-1",
+                "elementType": "chart",
+                "bounds": [
+                  80,
+                  70,
+                  800,
+                  380
+                ],
+                "data": {
+                  "cols": [
+                    "x",
+                    "y",
+                    "size"
+                  ],
+                  "rows": [
+                    [
+                      "A",
+                      12,
+                      4
+                    ],
+                    [
+                      "B",
+                      18,
+                      9
+                    ],
+                    [
+                      "C",
+                      15,
+                      16
+                    ]
+                  ]
+                },
+                "series": [
+                  {
+                    "type": "waterfall",
+                    "encode": {
+                      "x": "x",
+                      "y": "y"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "text-default",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "t",
+                "elementType": "text",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "content": {
+                  "text": "<p>Hello <em>world</em></p>"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "text-format",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "t",
+                "elementType": "text",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "content": {
+                  "text": "<p>Hello <em>world</em></p>",
+                  "fontSize": 22,
+                  "fontFamily": {
+                    "latin": "Arial",
+                    "ea": "SimSun"
+                  },
+                  "color": "#12345680",
+                  "backgroundColor": "#ffeeaa",
+                  "lineHeight": 1.5,
+                  "letterSpacing": 2,
+                  "marginTop": 4,
+                  "wrap": false,
+                  "textDirection": "vertical",
+                  "align": [
+                    "right",
+                    "bottom"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "text-rich",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "t",
+                "elementType": "text",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "content": {
+                  "text": "<p style=\"text-align:center\">A<u>B</u><s>C</s><sup>D</sup><sub>E</sub><br/>F</p><ul><li>One</li><li>Two</li></ul><p><a href=\"https://example.com\">link</a></p>"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "shape-plain",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "shape-effects",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect",
+                "rotation": 25,
+                "flip": [
+                  true,
+                  true
+                ],
+                "opacity": 0.5,
+                "fill": {
+                  "type": "solid",
+                  "color": "#12345680"
+                },
+                "border": {
+                  "width": 2,
+                  "color": "#445566",
+                  "style": "dash"
+                },
+                "shadow": {
+                  "blur": 4,
+                  "color": "#11223380",
+                  "offset": [
+                    3,
+                    -4
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "shape-gradient",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect",
+                "fill": {
+                  "type": "gradient",
+                  "gradientType": "linear",
+                  "angle": 45,
+                  "stops": [
+                    {
+                      "position": 0,
+                      "color": "#123456"
+                    },
+                    {
+                      "position": 1,
+                      "color": "#aabbcc"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-appear",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "appear",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-fade-in",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "fade-in",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-fly-in",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "fly-in",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-zoom-in",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "zoom-in",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-wipe-in",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "wipe-in",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-float-in",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "float-in",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-peek-in",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "peek-in",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-rise-in",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "rise-in",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-pulse",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "pulse",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-grow-shrink",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "grow-shrink",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-spin",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "spin",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-teeter",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "teeter",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-fill-color",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "fill-color",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100,
+                "color": "#ff0000"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-transparency",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "transparency",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-color-pulse",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "color-pulse",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100,
+                "color": "#ff0000"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-disappear",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "disappear",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-fade-out",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "fade-out",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-fly-out",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "fly-out",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-zoom-out",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "zoom-out",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-wipe-out",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "wipe-out",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-float-out",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "float-out",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "animation-motion-path",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "s",
+                "elementType": "shape",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "shapeName": "rect"
+              }
+            ],
+            "animations": [
+              {
+                "elementId": "s",
+                "effect": "motion-path",
+                "trigger": "onClick",
+                "durationMs": 700,
+                "delayMs": 100,
+                "path": "M 0 0 L 0.5 0.5 E"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "notes",
+      "pptd": {
+        "size": [
+          960,
+          540
+        ],
+        "pages": [
+          {
+            "pageType": "slide",
+            "elements": [
+              {
+                "elementId": "t",
+                "elementType": "text",
+                "bounds": [
+                  20,
+                  30,
+                  300,
+                  150
+                ],
+                "content": {
+                  "text": "<p>Hello <em>world</em></p>"
+                }
+              }
+            ],
+            "notes": "Speaker notes\nSecond line"
+          }
+        ]
+      }
+    }
+  ]
+}

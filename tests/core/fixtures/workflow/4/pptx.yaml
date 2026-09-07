@@ -1,0 +1,11 @@
+{
+  "version": "v2",
+  "title": "A campaign pacing page that includes learning",
+  "size": [
+    960,
+    540
+  ],
+  "pages": [
+    "pages/01.page.yaml"
+  ]
+}
