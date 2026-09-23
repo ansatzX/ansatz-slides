@@ -4,7 +4,7 @@ This schema describes presentation manifests (`pptx.yaml`) and page objects (`*.
 
 ## How to use this reference
 
-Start with [the executable authoring subset](authoring-start.md). Consult this document by the specific field or element being used, not as a required full read. TypeScript interfaces describe types; they are not executable page files. Sections marked rejected identify unsupported inputs and must not be emitted. If prose and the strict validator disagree, stop and resolve the discrepancy; never relax validation to match prose.
+Start with [the executable authoring subset](authoring-start.md), then create/update formal sources through [work objects](review-cli.md). Formal YAML comments require a YAML parser; pure JSON syntax remains accepted for candidates. Consult this document by the specific field or element being used, not as a required full read. TypeScript interfaces describe types; they are not executable page files. Sections marked rejected identify unsupported inputs and must not be emitted. If prose and the strict validator disagree, stop and resolve the discrepancy; never relax validation to match prose.
 
 ---
 
@@ -17,7 +17,7 @@ Start with [the executable authoring subset](authoring-start.md). Consult this d
 ## 1. Global Conventions
 
 ### Syntax
-- Uses **YAML 1.2** syntax
+- Uses a restricted YAML syntax with YAML-1.2-like scalar handling. Duplicate/merge keys, recursive aliases and non-string mapping keys are rejected; unquoted `on`, `off`, `yes`, `no` remain strings.
 - For special characters such as `:`, `#`, `{`, `}`, the value must be wrapped in quotes or written with a block scalar instead
 - For fields with many special characters such as `content.text`, a block scalar (`|`) should be used as its own block, to prevent content like `style="..."` from being parsed incorrectly
 
@@ -698,7 +698,8 @@ content:
 
 **LaTeX formulas**
 
-Rich text supports embedding LaTeX formulas with the `\(...\)` delimiters:
+Rich text supports a **limited LaTeX-to-Office-Math subset** with the `\(...\)` delimiters. It is not a full TeX engine: unknown commands remain literal text. For unsupported expressions and final rendering checks, see [equation routes](equations.md).
+
 - May form their own paragraph, or be mixed with other text inside a `<p>`.
 - Rich text tags are **not allowed** inside a formula.
 - A formula **only inherits** the `color` and `font-size` styles from its context; other text styles are not passed through.
@@ -1845,3 +1846,15 @@ animations:
 `path` is an SVG path string. Path coordinates are offsets relative to the element's current position, measured in page px. The path must start with `M 0 0`, contain only one subpath, and may use `L` (line), `Q` / `C` (curves), and `Z` (close). For example, `M 0 0 L 200 -100` moves the element 200px to the right and 100px upward.
 
 The same element may define multiple animations in array order. Keep each page to 1–3 animation groups when possible, prefer simple effects such as fade, fly, and zoom, and avoid applying multiple emphasis effects to the same element in succession.
+
+## Mandatory geometry and intentional layering
+
+Page objects optionally accept `allowedOverlaps`, a list of objects containing
+`elements: [firstElementId, secondElementId]` and a nonempty `reason` string. IDs
+must be distinct, present on that page, and pair entries unique. This metadata
+does not change OOXML. It records author intent for that pair only.
+
+Export and source publication reject undeclared positive-area bounds overlaps
+and elements outside the canvas. Bounds envelopes are conservative for rotation;
+page backgrounds are separate from elements. See [the mandatory geometry gate](review-cli.md)
+for diagnostics, draft manifest publication and the repair workflow.

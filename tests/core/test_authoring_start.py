@@ -22,9 +22,12 @@ class AuthoringStartTests(unittest.TestCase):
         scratch = ROOT/'tmp'; scratch.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='authoring-start-', dir=scratch) as name:
             project = Path(name)
-            (project/'pages').mkdir()
-            (project/'pptx.yaml').write_text(blocks[0])
-            (project/manifest['pages'][0]).write_text(blocks[1])
+            (project/'settings.yaml').write_text(blocks[0])
+            (project/'first.page.yaml').write_text(blocks[1])
+            created = subprocess.run([sys.executable, str(SKILL/'scripts/ansatz_slide.py'), 'deck', 'create',
+                                      str(project), '--settings', str(project/'settings.yaml'), '--content', str(project/'first.page.yaml')],
+                                     capture_output=True, text=True, timeout=60)
+            self.assertEqual(created.returncode, 0, created.stdout+created.stderr)
             output = project/'starter.pptx'
             result = subprocess.run([sys.executable, str(SKILL/'scripts/ansatz_slide.py'), 'export',
                                      str(project), '-o', str(output)], capture_output=True, text=True, timeout=60)

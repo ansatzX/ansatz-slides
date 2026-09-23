@@ -2,7 +2,7 @@
 
 Choose one primary scenario from the task's reader objective. Read only that file; add an auxiliary scenario only when it contributes necessary guidance. Named presets and user references are selected through SKILL.md, not automatically through this table.
 
-[Execution contract](agent-contract.md) defines hard constraints and priority. The files below describe communication methods and visual defaults; they do not add DSL features, impose mandatory research, or override a user's visual system.
+[Skill working rules](../SKILL.md) defines hard constraints and priority. The files below describe communication methods and visual defaults; they do not add DSL features, impose mandatory research, or override a user's visual system.
 
 | Scenario | Reader objective | Guide |
 | --- | --- | --- |

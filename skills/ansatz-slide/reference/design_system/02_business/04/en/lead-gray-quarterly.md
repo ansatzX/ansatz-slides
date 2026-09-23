@@ -1,6 +1,6 @@
 # Design System: Consumer Trend Monitor · Landscape Presentation Edition
 
-> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. Visual guidance does not extend DSL syntax; charts/tables are external assets. Density and aesthetic prescriptions are defaults subordinate to user requirements, evidence and readability.
+> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. This file defines appearance, not CLI behavior or new DSL fields. Use page work objects to modify formal sources. Density, fixed narrative orders and aesthetic prescriptions are defaults subordinate to the user, supplied evidence, readability and the geometry gate; never invent content to meet a quota.
 
 > Reverse-engineered from: the real visual evidence of a 36-page portrait (US Letter 612×792) investment-monitoring quarterly (cover + page-by-page images of all 35 pages).
 > This system keeps only its **visual methodology** — newspaper-style grids, serif headlines mixed with data charts, a teal/amber/crimson chart language, and paper-beige footers —

@@ -127,6 +127,11 @@ def is_manifest_path(path):
     return name == "pptx.yaml" or name.endswith(".pptx.yaml")
 
 
+def manifest_paths(root):
+    """All reserved manifest names, including dangling symlinks."""
+    return sorted(path for path in Path(root).iterdir() if is_manifest_path(path))
+
+
 def find_manifest(source):
     source = Path(source).expanduser().resolve()
     if source.is_file() and is_manifest_path(source):
@@ -143,6 +148,10 @@ def find_manifest(source):
 
 def load_project(source):
     manifest_path = find_manifest(source)
+    return _load_manifest(manifest_path)
+
+
+def _load_manifest(manifest_path):
     root = manifest_path.parent
     manifest = parse_document(
         manifest_path.read_text(encoding="utf-8"), str(manifest_path)
@@ -233,6 +242,15 @@ def resolve_images(pptd, root, *, allow_remote=True, timeout=30):
     return images
 
 
+SOURCE_HEADER = '# 此文件已存在时，请通过 ansatz-slide CLI 修改，不要直接编辑；请编辑候选文件后由 CLI 校验并写回。\n'
+
+
+def source_bytes(data):
+    """Add an idempotent workflow reminder to formal YAML, not candidate/state files."""
+    header = SOURCE_HEADER.encode('utf-8')
+    return data if data.startswith(header) else header + data
+
+
 def atomic_write(destination, data, force=False):
     destination = Path(destination).expanduser().resolve()
     if destination.exists() and not force:
@@ -256,12 +274,58 @@ def atomic_write(destination, data, force=False):
     return destination
 
 
+def create_project(draft, output):
+    """Publish a new formal manifest only after all referenced pages pass."""
+    draft=Path(draft).expanduser().resolve()
+    output=Path(output).expanduser().absolute()
+    if output.is_symlink() or output.exists():
+        raise FileExistsError('Formal manifest output must be new')
+    output=output.resolve()
+    if not is_manifest_path(output) or output.parent!=draft.parent:
+        raise ValidationError('Output must be pptx.yaml or *.pptx.yaml beside the draft and page sources')
+    raw=draft.read_bytes()
+    manifest=parse_document(raw.decode('utf-8'),str(draft))
+    obj(manifest,'manifest',{'version','title','customFonts','size','theme','pages'}, {'version','size','pages'})
+    array(manifest['pages'],'manifest.pages',minimum=1)
+    tracked={draft:raw}
+    for name in manifest['pages']:
+        path=safe_path(draft.parent,name,'manifest.pages')
+        tracked[path]=path.read_bytes()
+    pptd,root=_load_manifest(draft)
+    if output in tracked:
+        raise ValidationError('Formal manifest must not overwrite draft or page sources')
+    from .occupancy import require_pages
+    reports=require_pages(pptd['size'],pptd['pages'])
+    if any(path.read_bytes()!=data for path,data in tracked.items()):
+        raise RuntimeError('Draft or page source changed during precheck; retry')
+    from .page_api import lock, sha
+    from .file_transactions import retract_created
+    with lock(output.parent/'.ansatz-page-edit.lock'):
+        if manifest_paths(output.parent):
+            raise ValueError('Project already has a manifest')
+        if any(path.read_bytes()!=data for path,data in tracked.items()):
+            raise RuntimeError('Draft or page source changed before publication; retry')
+        data=source_bytes(raw)
+        atomic_write(output,data)
+        try:
+            if manifest_paths(output.parent)!=[output] or any(path.read_bytes()!=value for path,value in tracked.items()):
+                raise RuntimeError('Project changed during publication; retry')
+        except Exception:
+            retract_created(output,sha(data))
+            raise
+    return {'output':str(output),'pageCount':len(reports),'geometryStatus':'passed',
+            'pages':[{'page':i+1,'status':r['status'],'approvedOverlaps':r['approvedOverlaps']} for i,r in enumerate(reports)],
+            'effect':'Created formal manifest after fresh geometry checks; export rechecks current sources.'}
+
+
 def export_project(
-    source, output, *, transition="fade", force=False, allow_remote=True
+    source, output, *, transition="fade", force=False, allow_remote=True, measure_text=False
 ):
     if transition not in {"fade", "none"}:
         raise ValidationError("Transition must be fade or none")
     pptd, root = load_project(source)
+    from .occupancy import require_pages
+    require_pages(pptd['size'], pptd['pages'])
     output = Path(output).expanduser().resolve()
     protected = {find_manifest(source)} | {
         safe_path(root, p["pagePath"], "page") for p in pptd["pages"]
@@ -273,6 +337,10 @@ def export_project(
         raise ValidationError("Output must not overwrite source documents or assets")
     if output.exists() and not force:
         raise FileExistsError(f"Output exists; use --force: {output}")
+    text_fit = None
+    if measure_text:
+        from .typography import check_loaded
+        text_fit = check_loaded(pptd, root)
     images = resolve_images(pptd, root, allow_remote=allow_remote)
     data = export_pptx(
         pptd,
@@ -282,4 +350,4 @@ def export_project(
 
     report = inspect_pptx(data)
     atomic_write(output, data, force)
-    return {"output": str(output), "pageCount": len(pptd["pages"]), "structure": report}
+    return {"output": str(output), "pageCount": len(pptd["pages"]), "structure": report, **({"textFit":text_fit} if measure_text else {})}

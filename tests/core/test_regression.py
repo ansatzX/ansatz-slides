@@ -15,6 +15,7 @@ import unittest
 from pathlib import Path
 from xml.etree import ElementTree as ET
 from zipfile import ZipFile
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from ansatz_slide import export_pptx
@@ -47,7 +48,11 @@ def fingerprints(data):
     return result
 
 
-def main():
+@patch('ansatz_slide.occupancy.require_pages', return_value=[])
+def main(_geometry_gate):
+    # Frozen legacy inputs exercise OOXML serialization, including deliberately
+    # overlapping/out-of-canvas cases. Keep their independent byte expectations;
+    # mandatory gate behavior is covered without mocks in test_geometry_gate.
     directory = Path(__file__).with_name("fixtures")
     expected = json.loads((directory / "expected.json").read_text())
     failures = []

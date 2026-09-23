@@ -1,5 +1,9 @@
 {
   "pageType": "content",
+  "allowedOverlaps": [
+    {"elements": ["anim-panel", "anim-title"], "reason": "The panel is the title background."},
+    {"elements": ["anim-panel", "anim-body"], "reason": "The panel is the body background."}
+  ],
   "background": {"type": "solid", "color": "#F7F9FC"},
   "elements": [
     {

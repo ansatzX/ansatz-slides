@@ -1,6 +1,6 @@
 # Academic Thesis Defense Design System (brand-free, reusable)
 
-> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. Visual guidance does not extend DSL syntax; charts/tables are external assets. Density and aesthetic prescriptions are defaults subordinate to user requirements, evidence and readability.
+> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. This file defines appearance, not CLI behavior or new DSL fields. Use page work objects to modify formal sources. Density, fixed narrative orders and aesthetic prescriptions are defaults subordinate to the user, supplied evidence, readability and the geometry gate; never invent content to meet a quota.
 
 > Applicable scenarios: long academic thesis defenses / research presentations / paper talks (100+ page scale). This system abstracts only visual and layout rules and contains no brand, person, institution, title, original text, original figure, or real data.
 

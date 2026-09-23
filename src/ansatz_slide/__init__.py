@@ -11,6 +11,8 @@ def export_pptx(pptd, options=None):
     """Return PPTX bytes for an in-memory presentation object and resolved resources."""
     if not isinstance(pptd, dict) or not isinstance(pptd.get("pages"), list):
         raise ValueError("pptx.yaml pages must be an array")
+    from .occupancy import require_pages
+    require_pages(pptd.get("size", [960, 540]), pptd["pages"])
     options = options or {}
     package = Package()
     for number, page in enumerate(pptd["pages"], 1):

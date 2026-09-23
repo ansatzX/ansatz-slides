@@ -1091,7 +1091,7 @@ class Validator:
         obj(
             v,
             at,
-            {"pageType", "background", "notes", "elements", "animations"},
+            {"pageType", "background", "notes", "elements", "animations", "allowedOverlaps"},
             {"elements"},
         )
         fields(
@@ -1110,6 +1110,8 @@ class Validator:
             if e["elementId"] in ids:
                 fail(at, "duplicate elementId")
             ids.add(e["elementId"])
+        from .occupancy import overlap_declarations
+        overlap_declarations(v)
         if "animations" in v:
             array(v["animations"], at + ".animations")
             for i, a in enumerate(v["animations"]):

@@ -1,23 +1,28 @@
 # Small, executable authoring subset
 
-Start with text, image assets, rectangles and lines. Native charts/tables are compatibility features, not the default way to make figures. The following blocks form one complete two-file project; they are regression-tested through the actual writer.
+Start with text, image assets, rectangles and lines. Native charts/tables are compatibility features, not the default way to make figures. The following blocks form the two authoring inputs for a new project; they are regression-tested through the actual writer.
 
-Use `pptx.yaml` for the manifest and `*.page.yaml` for pages.
+Save the first block as `settings.yaml` and the second as `first.page.yaml`.
+Run `ansatz-slide deck create ./deck --settings ./settings.yaml --content ./first.page.yaml`.
+The CLI manages page filenames and the formal manifest. A blocked result retains
+the candidate and matrices for `page update WORK`; a successful result includes
+the first preview. Keep local assets inside `./deck` when used.
 
-## `pptx.yaml`
+## `settings.yaml`
 
 ```yaml
 version: v2
 title: Evidence-led report
 size: [960, 540]
-pages:
-  - pages/01.page.yaml
 ```
 
-## `pages/01.page.yaml`
+## `first.page.yaml`
 
 ```yaml
 pageType: content
+allowedOverlaps:
+  - elements: [evidence-frame, missing-evidence]
+    reason: The evidence placeholder label belongs inside its background frame.
 background: {type: solid, color: "#FFFFFF"}
 elements:
   - elementId: title
@@ -54,7 +59,7 @@ elements:
 
 This is a structural starter, not a completed report or a font-availability guarantee. Choose installed Latin/East Asian fonts for the audience and inspect the final render. Colors and layout may change; field names and types may not be invented.
 
-For a supplied figure, replace both `evidence-frame` and `missing-evidence` with one `image` element: give it a unique `elementId`, `bounds: [48, 140, 540, 300]`, `src: media/figure.png`, and `fit: {mode: contain}`. The file must actually exist inside the project. Keep interpretation and source as separate native text.
+For a supplied figure, replace both `evidence-frame` and `missing-evidence` with one `image` element: give it a unique `elementId`, `bounds: [48, 140, 540, 300]`, `src: media/figure.png`, and `fit: {mode: contain}`. Remove the obsolete `allowedOverlaps` pair when removing those two elements. The file must actually exist inside the project. Keep interpretation and source as separate native text.
 
 Important distinctions:
 
@@ -62,4 +67,4 @@ Important distinctions:
 - `.page.yaml` elements are in back-to-front order. A separate shape and text may intentionally overlap; unrelated text must not.
 - Native text must not contain element-level opacity, rotation or flip. Use a solid color or disclose an external-image substitute.
 - Prefer JSON serialization or quoted YAML/block scalars for text containing `:`, `#` or HTML. Do not paste TypeScript interface notation into a page.
-- Validate via the manifest, not a standalone page YAML file. From an installed skill, run `python3 scripts/ansatz_slide.py validate <project>`; use `python3 scripts/ansatz_slide.py export <project> -o output.pptx` to export.
+- Validate via the manifest, not a standalone page YAML file. From an installed skill, run `python3 scripts/ansatz_slide.py validate <project>`; use `python3 scripts/ansatz_slide.py deck export <project> -o output.pptx` to export.

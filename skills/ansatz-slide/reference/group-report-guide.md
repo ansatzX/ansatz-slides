@@ -2,37 +2,16 @@
 
 Use this reference for research group meetings, progress reports, method reviews, and other evidence-heavy academic presentations. It captures the reusable production principles and visual language of the designated guide deck. Do not reproduce defects from the source deck, such as crowded figures, weak contrast, or overlapping objects.
 
-## Section A — Production Methodology
+## Section A — Production methodology
 
-### Communication objective
+Use [academic authoring](academic-authoring.md) for the actual sequence from reading material to a report, including worked failure/correction examples and audience review. The following group-meeting choices specialize that workflow:
 
-- Treat the deck as a tool for making work understandable, discussable, and open to scrutiny. A work log is not a substitute for a presentation.
-- Optimize for clarity, directness, completeness, logical continuity, emphasis, and useful information density. Visual polish serves comprehension.
-- Explain the main work in two or three sentences before designing pages. The audience should understand the central problem, current progress, and the logic of the report within the first two or three slides.
+- State the main work in two or three sentences. The first two or three slides should orient the audience to the question, current progress and purpose of the discussion.
+- Select a narrative that fits the work: problem solving, method exploration, progress review or topic selection. A report with negative results can center on diagnosis and a request for help.
+- Report observed failures, competing explanations and a feasible discriminating experiment. Do not convert effort, code execution or a proposed test into a successful scientific result.
+- Borrow a predecessor's argumentative moves and evidence relationships when useful. Its colors and equal-width panels are not the method.
 
-### Story construction
-
-- Choose one global narrative: problem solving, method exploration, progress review, or topic selection. Do not switch narrative logic without an explicit transition.
-- Assign every slide one primary function, such as context, transition, evidence, argument, comparison, conclusion, next experiment, or request for help.
-- Write one claim sentence for every slide before laying it out. Reading these sentences in order should form a coherent account.
-- Lead with the conclusion or judgment, then place the evidence and explanation that support it. Do not make the audience infer the point from a pile of materials.
-- Write from the audience's perspective. Define unfamiliar objects and relationships instead of assuming prior project knowledge.
-
-### Evidence and reasoning
-
-- Group related evidence and give each parallel block a short heading. Use whitespace and simple divider lines to expose structure.
-- Every figure, screenshot, image, diagram, chart, and table needs a nearby label or caption and a sentence explaining what the audience should notice. Put the source close to the evidence.
-- Use externally produced or supplied flow diagrams for plans, technical routes, causal chains, and experiment sequences; retain their editable source when available. Native arrows and leader lines may annotate the evidence when they clarify reading order or correspondence.
-- When results are sparse or negative, report them honestly: state what was attempted, what was observed, the likely causes, what remains unknown, and the next experiment or help needed. Never invent a successful result to fill a page.
-- When the logic is stuck, study a strong predecessor for its argumentative frame and page functions; do not merely copy its decoration.
-
-### Review gates
-
-- Verify that the first two or three slides establish the main question and report logic.
-- Verify that every slide has one explicit claim and one primary function.
-- Verify that each evidence object has a label, interpretation, and source where applicable.
-- Verify that conclusions are supported by visible evidence and that uncertainty is stated honestly.
-- Reject pages with overlap, clipping, illegible evidence, unexplained screenshots, or decorative material unrelated to the claim.
+The source guide is Zhang Wenjie's *2025 帅组组会报告不完全指南*: purpose and narrative (pp. 5–9), expression (pp. 12–18), concrete visual tools (pp. 20–24), and negative-result discussion (p. 26). Its emergency suggestions on pp. 27–28 are explicitly qualified by the author and are not an automatic content-generation strategy. The source deck is not required at runtime.
 
 ## Section B — Visual System
 
@@ -50,13 +29,13 @@ Use this reference for research group meetings, progress reports, method reviews
 
 ### Typography
 
-- Use a clear Chinese sans-serif with a compatible Latin sans-serif. Prefer fonts that are already available on the delivery machine; embedding is optional and must not be assumed.
+- Use a clear Chinese sans-serif with a compatible Latin sans-serif. Prefer fonts that are already available on the delivery machine; the exporter does not embed fonts.
 - Reference scale: cover title 80–96 pt, section title 48–60 pt, content title about 32–40 pt, body 18–24 pt, captions and sources 9–12 pt. Adjust for actual viewing distance and density.
 - Establish emphasis with weight, size, accent color, outline, underline, or a nearby arrow. Do not combine every emphasis method on the same phrase.
 
 ### Layout and components
 
-- Use conclusion-first headlines, unequal evidence/text proportions, simple lines, and deliberate whitespace as the default structure.
+- Give argument pages a supported takeaway; setup pages may have a concise subject or question title. Use evidence/text proportions, simple lines and whitespace to expose the actual relationship.
 - Cards and equal splits are allowed when they express genuine parallelism, comparison, or staged reasoning. They are not default filler and must not become a generic dashboard grid.
 - Use real screenshots, papers, experimental figures, interfaces, or object images as evidence. Preserve enough scale for the relevant detail to be readable.
 - Use native labeled blocks for parallel text, dark-versus-light panels for binary comparison, and external flow-diagram assets for procedures or technical routes. Do not promise that a placed diagram image is editable inside PowerPoint.
@@ -74,4 +53,4 @@ Use this reference for research group meetings, progress reports, method reviews
 - Use native pptx.yaml text, shapes, and lines for page framing and annotation. Figures, charts, and finished tables are produced by a dedicated tool or supplied by the user, then placed as PNG/SVG assets with readable captions and sources; PPTX arranges them rather than drawing them. If an asset is unavailable, create a clearly labeled placeholder frame.
 - The native chart/table DSL remains a tested compatibility surface, not the default production path. Never emit unsupported chart DSL or present an empty/misleading chart as success. For delivery icons, likewise use supplied PNG/SVG image elements; the `icon` DSL may expose only its generic fallback shape in standard Office consumers.
 - A reference shape containing text must be reconstructed as separate Shape and Text elements. Grouped source objects may be flattened into independent elements or, when editability is unnecessary, retained as one image.
-- Use only DSL constructs defined by `reference/presentation-schema.md`. Export success alone is not evidence that an input is valid.
+- Use only DSL constructs in [the field reference](presentation-schema.md). Export success alone is not evidence that an input is valid.

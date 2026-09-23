@@ -1,6 +1,6 @@
 # Academic research
 
-For group meetings/progress reports, also read [the group-report guide](../group-report-guide.md). Its methodology is separate from its default visual language.
+For new reports and substantive rewrites, first read [academic authoring](../academic-authoring.md) and its worked examples. For group meetings/progress reports, also read [the group-report guide](../group-report-guide.md). Its methodology is separate from its default visual language.
 
 ## Methodology
 

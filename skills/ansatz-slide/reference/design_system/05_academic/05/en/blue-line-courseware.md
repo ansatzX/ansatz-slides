@@ -1,6 +1,6 @@
 # Blue-Line Experiment Methodology Courseware · PPT Design System (brand-free, reusable version)
 
-> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. Visual guidance does not extend DSL syntax; charts/tables are external assets. Density and aesthetic prescriptions are defaults subordinate to user requirements, evidence and readability.
+> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. This file defines appearance, not CLI behavior or new DSL fields. Use page work objects to modify formal sources. Density, fixed narrative orders and aesthetic prescriptions are defaults subordinate to the user, supplied evidence, readability and the geometry gate; never invent content to meet a quota.
 
 This system is reverse-engineered from a complete experiment-and-measurement-methodology courseware, abstracting only the teaching pacing, method matrices, comparison expression, and editorial layout. Do not copy the platform name, company, person, case, photo, screenshot, original text, or real metric from the source deck; the facts and numbers in the generated deck may come only from the user's query.
 

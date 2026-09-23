@@ -1,6 +1,6 @@
 # Soft Cloud-Layer Diagnostic Narrative · PPT Design System (brand-free, reusable version)
 
-> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. Visual guidance does not extend DSL syntax; charts/tables are external assets. Density and aesthetic prescriptions are defaults subordinate to user requirements, evidence and readability.
+> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. This file defines appearance, not CLI behavior or new DSL fields. Use page work objects to modify formal sources. Density, fixed narrative orders and aesthetic prescriptions are defaults subordinate to the user, supplied evidence, readability and the geometry gate; never invent content to meet a quota.
 
 This document is reverse-engineered from a 32-page technical talk source deck, retaining only the visual language and narrative method for reuse in any technical-proposal-style presentation. The full text contains no third-party logos, brand names, people, product screenshots, source-deck body text, or original data; any value that could not be precisely sampled is marked "approximate."
 

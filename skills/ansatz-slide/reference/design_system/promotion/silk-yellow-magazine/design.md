@@ -1,6 +1,6 @@
 # Silk Yellow Magazine · brand_campaign STYLE DESIGN SYSTEM
 
-> **Local runtime contract:** Read [design-system-runtime.md](../../../design-system-runtime.md) before using this style. Visual guidance does not extend DSL syntax; charts/tables are external assets. Density and aesthetic prescriptions are defaults subordinate to user requirements, evidence and readability.
+> **Local runtime contract:** Read [design-system-runtime.md](../../../design-system-runtime.md) before using this style. This file defines appearance, not CLI behavior or new DSL fields. Use page work objects to modify formal sources. Density, fixed narrative orders and aesthetic prescriptions are defaults subordinate to the user, supplied evidence, readability and the geometry gate; never invent content to meet a quota.
 
 ## PART A — Category Baseline (Universal Minimum)
 

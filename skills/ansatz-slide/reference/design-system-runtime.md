@@ -30,6 +30,6 @@ The [pptx.yaml reference](presentation-schema.md) and strict local validator det
 
 Keep the manifest, individual `.page.yaml` files and referenced media. Export through the strict local CLI, inspect the PPTX ZIP/OOXML and render the exported PPTX—not only the editor preview. Check fit, crops, labels, wrapping, fonts and native text separately. A successful export does not establish visual fidelity.
 
-For edits to one page, follow SKILL.md's incremental replacement workflow and test unchanged-page OOXML semantics. Applying a style must not silently rewrite other pages or shared assets.
+For edits to one page, use [work objects](review-cli.md) for source changes and [binary replacement](page-edit.md) only when updating an existing PPTX. Applying a style must not silently rewrite other pages or shared assets.
 
 Theme thumbnails are style-reference images, not proven outputs of the current skill. Only examples accompanied by executable source, assets, output and verification may be presented as generated demonstrations.

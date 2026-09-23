@@ -81,6 +81,9 @@ class WorkflowTests(unittest.TestCase):
                 path = self.root / (name + ".pptx")
                 # Any hidden delegation to an external runtime is a test failure.
                 with (
+                    # Preserve frozen serializer fingerprints for old layout
+                    # fixtures; live gate/preservation tests run without this mock.
+                    patch('ansatz_slide.occupancy.require_pages',return_value=[]),
                     patch(
                         "subprocess.Popen",
                         side_effect=AssertionError("external process"),

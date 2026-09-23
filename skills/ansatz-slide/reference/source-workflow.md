@@ -1,73 +1,37 @@
-# From source material to PPTX
+# From supplied material to a presentation
+
+The agent selects the narrative and prepares assets. The CLI reads structured candidates; it does not call an LLM, infer an argument or automatically plot raw data.
 
 ## File roles
 
-The user may supply text, images, descriptions, and data. An agent prepares the
-content and layout; the Python exporter reads a structured project. It does not
-call an LLM, infer a narrative, or turn raw CSV data into plots automatically.
-
 ```text
 project/
-  pptx.yaml             # required manifest: version, size, ordered page paths
-  pages/
-    01.page.yaml             # one page: text, objects, bounds, styles, image references
-    02.page.yaml
-  media/                 # referenced images/figures, when used
-  result.pptx            # generated OOXML ZIP package
+  pptx.yaml                  # CLI-managed settings and ordered page paths
+  page-<id>.page.yaml         # CLI-created page sources
+  media/                     # supplied or prepared local assets
+  .ansatz/                   # work revisions and model-authored outline
+  .ansatz-recovery/           # retained publication recovery, when needed
 ```
 
-`pptx.yaml` and page files are ordinary UTF-8 YAML text. The manifest records presentation settings and page references. JSON syntax is also
-accepted inside these YAML files. Manifests must be named `pptx.yaml` or
-`<name>.pptx.yaml`; page files must end in `.page.yaml`.
-Set the schema version to `version: v2`.
+Imported projects may use `pages/01.page.yaml` or other relative paths. Only manifest order defines page numbers. All asset paths, including those inside page sources, are relative to the manifest directory. Deliver referenced sources and assets together; runtime work/recovery data are not compiler inputs.
 
-`input/`, `working/`, plotting scripts, and source notes may help organize a task,
-but are not mandatory compiler inputs. Deliver the manifest, every referenced
-page, and all local assets together. Paths are relative to the manifest's
-parent directory, including image paths written inside page files.
+A manifest is `pptx.yaml` or `*.pptx.yaml`, with `version: v2`; pages end in `.page.yaml`. Directory lookup requires one manifest at its root. Explicit file lookup supports an existing multi-manifest directory, but new creation refuses to add a second manifest. Page files alone lack canvas/theme context.
 
-## Preparation and export
+## Authoring sequence
 
-1. Extract usable text/data from supplied documents, preserving sources and
-   qualifications. Descriptions guide the agent's authoring decisions.
-2. Retain supplied images or use dedicated tools to produce figures/tables.
-   A plotting script may read CSV and write `media/figure.png`; the exporter
-   reads the resulting image, not the CSV. Native chart/table fields are a
-   separate supported compatibility path and require explicit structured data.
-3. Write the manifest and page YAML using [the executable starter](authoring-start.md).
-   The manifest references the page files; a page is not compiled into another
-   manifest. Assets are referenced rather than embedded as arbitrary binary YAML.
-4. Validate and export using [operations](operations.md). `project.load_project`
-   reads the manifest and pages, validates them, and assembles an in-memory
-   object. No extra merged JSON file is required. Assets are resolved and the
-   Python writer produces XML parts, relationships, and media inside `.pptx`.
-5. Inspect the actual output and review its appearance in the target consumer
-   using [delivery checks](delivery-checks.md).
+1. Identify the audience's question, supplied evidence and requested scope. Preserve sources and qualifications. For academic talks, first read [academic authoring](academic-authoring.md); do not convert every reading-note heading into a slide.
+2. Prepare project-local figures using supplied files or dedicated tools. Keep labels, units and uncertainty visible. Native chart/table DSL is an optional structured compatibility path; images do not become editable data charts.
+3. Write settings and one candidate using [the starter](authoring-start.md). Create the project with `deck create PROJECT --settings FILE --content FILE`.
+4. Use [work objects](review-cli.md) to review and revise the returned page. Record its purpose, claim, evidence and connections with `deck outline`. Open actual preview images; paths and matrix counts are not image review.
+5. Insert or split/merge nearby pages as readable typography and figures require. Keep the outline provisional; refine the affected reasoning rather than redesigning the whole deck after every edit.
+6. Export and inspect the integrated PPTX with [operations](operations.md), then perform [delivery checks](delivery-checks.md).
 
-## Syntax layers
+Formal YAML is written by the CLI and carries a reminder to modify it through the CLI. Edit a candidate file and pass it to `page update`; do not edit work metadata. On geometry failure, preserve content and correct layout under the returned restrictions.
 
-YAML is the text container. The source schema defines manifest, page and element fields.
-Rich text accepts a documented HTML subset; equations accept a limited TeX subset
-and export Office Math. SVG assets/path fields are separate vector inputs. Style
-Markdown and TypeScript-shaped reference examples explain authoring; the exporter
-does not execute them. Consult [the field reference](presentation-schema.md) only as needed.
+## Representation boundaries
 
-## Discovery and preview
+YAML/JSON encode the schema. Rich text accepts the supported HTML subset. Equations use the routes in [equations](equations.md). TypeScript-shaped schema examples and style Markdown are reference descriptions, not executable source files. Consult [the schema](presentation-schema.md) by field.
 
-Pass `pptx.yaml` explicitly, or a directory containing one manifest at its root.
-Only `pptx.yaml` / `*.pptx.yaml` are manifest candidates. Pages and unrelated
-configuration are ignored by name; malformed manifests still produce errors.
-Multiple manifests require an explicit path. Page files can be nested; discovery
-does not recursively search subprojects.
+Local images must remain inside the project. Copy a shared asset before changing it for only one page. A clearly labeled placeholder is preferable to invented evidence. Fonts must be available to the target viewer; the exporter does not embed them.
 
-For a standalone one-slide PPTX, write a manifest whose `pages` list contains
-only the selected `.page.yaml` and export normally. A page alone has no global
-canvas/theme context and is not a direct CLI input. To replace a page in an
-existing presentation, use `replace-page`; this exports a full candidate before
-transplanting the selected page. Only supported schema elements are controllable;
-this is not a promise of every PowerPoint feature.
-
-Review final output with the intended consumer
-(for example PowerPoint, WPS, or LibreOffice); report which one was used.
-Academic decks normally omit element animations; use `--transition none` when
-slide transitions are also unwanted.
+Source edits produce local previews, not an updated existing full-deck PPTX. Export for a new integrated artifact, or use [binary page replacement](page-edit.md) to preserve the other slides of an existing file. Review that final artifact independently of the source preview.

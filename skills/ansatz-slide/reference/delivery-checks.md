@@ -1,34 +1,31 @@
 # Delivery checks
 
-## 1. Content and source
+Check the delivered version, not a prior preview. Keep structural validity, visual fidelity, page explanation and deck coherence as separate claims. A successful command or completed checklist does not prove all four.
 
-- Pages answer the agreed reader task and preserve supplied claims. Assumptions, pending assets and limitations are distinguishable from findings.
-- Each evidence figure has the labels, units, interpretation and source needed to understand it. Do not crop away a qualification, axis or sample definition.
-- Deliver the manifest, referenced page files and local assets together. Where remote dependencies remain, disclose them instead of calling the project completely self-contained/offline.
+## Source and artifact
 
-## 2. Syntax and PPTX structure
+- Deliver the manifest, every referenced page and local asset with the requested PPTX. Preserve sources, units, conditions and qualifications. Disclose remaining remote dependencies.
+- Export current inputs and inspect the actual PPTX for page count/order, relationships and required text/assets. Use the [field reference](presentation-schema.md) and executable validator when a construct is uncertain.
+- For binary single-page replacement, check the non-target preservation result under [page replacement](page-edit.md).
+- `deck export` defaults to no transition; older `export`/`replace-page` default to fade. Check the chosen setting, and review animation playback separately if requested.
 
-- Run the strict validator against the current manifest. A previous pass is invalid after relevant source changes.
-- Check the actual exported PPTX ZIP for integrity and its page count/order against the manifest.
-- Inspect high-risk objects and relationships in OOXML; confirm that requested text/assets are present rather than relying only on file existence or object counts.
-- For the default fade transition, each slide has one root-level `p:transition/p:fade` after `cSld` and optional `clrMapOvr`, before timing/extensions. For `--transition none`, no fade is expected.
-- For one-page edits, require the non-target preservation checks in [page-edit.md](page-edit.md).
+## Visual and content review
 
-## 3. Final visual review
+Open or render the exact final PPTX in the intended consumer when available. Inspect individual pages at readable resolution; a contact sheet is useful for rhythm, not detailed glyph/crop verification. Check complete labels, final text lines, contrast, figure scale and source annotations.
 
-Render or open the exact exported/merged PPTX using an available Office consumer. Review every slide individually at sufficient resolution for text and image details. A contact sheet helps compare rhythm and consistency but does not replace individual review.
+Use [page and deck review](page-and-deck-review.md) to assess both visible reasoning and spatial explanation. For new academic talks and substantive rewrites, also apply [academic authoring](academic-authoring.md): audience fit, evidence-to-claim correspondence and visible limits matter independently of successful export. A local formatting change does not require reauthoring the whole argument.
 
-Check text wrapping, font substitution/missing glyphs, unintended overlap, clipping, crop distortion, labels, contrast and presentation-distance readability. Shorten text or adjust layout before shrinking type. Intentional shape/text overlays are not automatically defects.
+Re-review affected pages after changes. Shared theme, fonts, images or premises may invalidate more than the edited page. Keep rendered evidence matched to the final artifact. Static images do not establish animation fidelity or native PowerPoint/WPS equivalence.
 
-After a change, re-export and review affected pages; changes to shared fonts, theme, size or assets require broader review. Keep the final file and its reviewed render matched. Source previews cannot establish final PPTX fidelity. Static renders cannot establish animation playback parity.
+## Handoff
 
-## 4. Report only what was checked
+Identify the requested output and source project, checks actually run, renderer and pages viewed, and unresolved defects or missing checks. Use concise evidence such as “page 6 y-axis label is now fully visible after recropping,” not “all axes checked” without observation.
 
-| State | Use when |
+| State | Meaning |
 | --- | --- |
-| Passed | Relevant check ran on the current artifact and met its criteria |
-| Failed | Check ran and found a defect; identify it and repair or disclose it |
-| Not run | Check was not performed; no claim about its result |
-| Blocked | Required tooling, input or authority is missing; state what is needed |
+| Passed | Ran on the current artifact and met the stated criterion |
+| Failed | Ran and found a concrete defect |
+| Not run | No result is claimed |
+| Blocked | Required input, tooling or authority is unavailable |
 
-The handoff should identify the project/PPTX, the checks actually run, the renderer and pages reviewed where applicable, and any unresolved issues. Do not require a particular JSON report schema or tool API; a concise record with those facts is sufficient. If final visual review cannot run, deliver valid source/PPTX when possible but mark visual QA unverified. Never invent a pass or conceal a known defect.
+Deliver completed work when useful, stating any unverified layer. Do not conceal a known defect, claim visual acceptance from OOXML alone, or treat model-authored intent as independently approved. No particular report schema or extra human approval is required by this checklist.

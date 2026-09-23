@@ -1,6 +1,6 @@
 # Editorial Growth Courseware · PPT Design System (brand-free, reusable version)
 
-> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. Visual guidance does not extend DSL syntax; charts/tables are external assets. Density and aesthetic prescriptions are defaults subordinate to user requirements, evidence and readability.
+> **Local runtime contract:** Read [design-system-runtime.md](../../../../design-system-runtime.md) before using this style. This file defines appearance, not CLI behavior or new DSL fields. Use page work objects to modify formal sources. Density, fixed narrative orders and aesthetic prescriptions are defaults subordinate to the user, supplied evidence, readability and the geometry gate; never invent content to meet a quota.
 
 This system is abstracted from a complete source deck of corporate brand and growth-methodology courseware, retaining only the layout, color relationships, and teaching narrative. It is not a reproduction of the source deck: it carries no platform mark, company name, person, photo, original text, case data, or product interface. All colors, dimensions, and values are approximate tokens; when generating, this file should serve as the constraint, with the user's query as the sole source of content.
 
