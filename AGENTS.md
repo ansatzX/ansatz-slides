@@ -9,7 +9,7 @@
 - `tests/`：功能、安装、文档示例与输出回归测试。
 - `scripts/verify_distribution.py`：wheel/sdist 内容检查。
 - `README.md`：安装、命令和项目说明；`theme.md`：风格索引。
-- `docs/DSL_SUPPORT_MATRIX.md`：能力边界；`docs/themes/`：主题参考图片。
+- `docs/README.md`：文档导航及开发验证；`docs/DSL_SUPPORT_MATRIX.md`：能力边界；`docs/themes/`：主题参考图片。
 
 ## 工作范围
 
@@ -21,7 +21,7 @@
 
 项目清单使用 `pptx.yaml` 或 `*.pptx.yaml`，页面使用 `*.page.yaml`。目录输入只在项目根目录寻找唯一清单；多个清单时指定文件。文件可以使用 YAML 或 JSON 语法。
 
-标准入口为 `ansatz-slide validate/export/inspect/replace-page/install-skill`。独立 Skill 通过 `scripts/ansatz_slide.py` 调用同一核心，不另建重复导出实现。
+标准入口为 `ansatz-slide validate/export/inspect/replace-page/page/deck/install-skill`。独立 Skill 通过 `scripts/ansatz_slide.py` 调用同一核心，不另建重复导出实现。
 
 本地素材必须位于源项目目录内；`--offline` 拒绝远程图片。校验应在写入前拒绝无法保持语义的输入，不能静默降级。协议字段、命名空间及回归期望值不能仅为消除名称或让测试通过而替换。
 
@@ -33,6 +33,7 @@
 - `reference/presentation-schema.md`：字段格式与兼容边界。
 - `reference/source-workflow.md`：原始材料到结构化源文件的流程。
 - `reference/operations.md`、`reference/page-edit.md`、`reference/delivery-checks.md`：运行、单页修改及交付。
+- `reference/review-cli.md`：page open/update 工作对象、失败候选与矩阵、局部分页，以及 deck create/outline/export；旧 session/token 接口见 review-cli-legacy.md。
 
 上述路径均相对 `skills/ansatz-slide/`。行为修改要同步对应指令和测试，避免复制多套规则。
 
