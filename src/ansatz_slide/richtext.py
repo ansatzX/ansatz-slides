@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from html.parser import HTMLParser
 
 from .styles import color_xml, fill_xml, shadow_xml
-from .xml import round_half_away, tag, text
+from .xml import round_half_away, tag, text, emu
 
 
 @dataclass
@@ -31,6 +31,10 @@ CSS_NAMES = {
     "text-align": "align",
     "line-height": "lineHeight",
     "margin-top": "marginTop",
+    "margin-left": "marginLeft",
+    "margin-right": "marginRight",
+    "letter-spacing": "letterSpacing",
+    "background-color": "inlineHighlight",
 }
 
 
@@ -40,14 +44,14 @@ def css_style(value):
         if ":" not in declaration:
             continue
         key, val = map(str.strip, declaration.split(":", 1))
-        key = CSS_NAMES.get(key)
+        key = CSS_NAMES.get(key.lower())
         if not key:
             continue
         if key == "bold":
             val = val == "bold" or (val.isdigit() and int(val) >= 600)
         elif key == "italic":
-            val = val == "italic"
-        elif key in ["fontSize", "letterSpacing", "marginTop"]:
+            val = val in ("italic", "oblique")
+        elif key in ["fontSize", "letterSpacing", "marginTop", "marginLeft", "marginRight"]:
             try:
                 val = float(val.removesuffix("px").removesuffix("pt"))
             except ValueError:
@@ -56,7 +60,11 @@ def css_style(value):
             val = val.strip("'\"")
         elif key == "lineHeight":
             try:
-                val = float(val)
+                if val.endswith("px"):
+                    key = "lineHeightPx"
+                    val = float(val[:-2])
+                else:
+                    val = float(val)
             except ValueError:
                 continue
         out[key] = val
@@ -90,11 +98,13 @@ class RichTextParser(HTMLParser):
                         )
                         == "ol"
                         else "bullet",
-                        "marginTop": 0.1,
+                        "marginTop": self.current.style.get("marginTop", 0.1),
                         "level": max(0, sum(t in ["ol", "ul"] for t in self.tags) - 1),
                     }
                 )
         elif name == "br":
+            self.ensure_paragraph()
+            self.current.runs.append(Run("", dict(self.stack[-1]), "break"))
             return
         style = {**self.stack[-1], **css_style(attrs.get("style", ""))}
         if name == "strong":
@@ -126,7 +136,7 @@ class RichTextParser(HTMLParser):
         if not value or (self.current is None and not value.strip()):
             return
         self.ensure_paragraph()
-        if self.current.runs and self.current.runs[-1].style == self.stack[-1]:
+        if self.current.runs and self.current.runs[-1].kind == "text" and self.current.runs[-1].style == self.stack[-1]:
             self.current.runs[-1].value += value
         else:
             self.current.runs.append(Run(value, dict(self.stack[-1])))
@@ -141,9 +151,9 @@ def run_properties(style, theme=None):
     for key, attr in [("bold", "b"), ("italic", "i")]:
         if style.get(key):
             attrs[attr] = "1"
-    if style.get("underline") or style.get("decoration") == "underline":
+    if style.get("underline") or "underline" in style.get("decoration", "").split():
         attrs["u"] = "sng"
-    if style.get("strike"):
+    if style.get("strike") or "line-through" in style.get("decoration", "").split():
         attrs["strike"] = "sngStrike"
     if style.get("baseline"):
         attrs["baseline"] = style["baseline"]
@@ -160,6 +170,8 @@ def run_properties(style, theme=None):
         )
     )
     content += shadow_xml(style.get("shadow"), theme)
+    if style.get("inlineHighlight"):
+        content += tag("a:highlight", children=color_xml(style["inlineHighlight"], theme))
     content += tag(
         "a:latin", {"typeface": fonts.get("latin", "Times New Roman")}
     ) + tag(
@@ -180,7 +192,11 @@ def paragraphs_xml(
     result = []
     for para in paragraphs:
         style = {**base, **para.style}
+        if "lineHeight" in para.style and "lineHeightPx" not in para.style:
+            style.pop("lineHeightPx", None)
         properties = {}
+        for key, attr in (("marginLeft", "marL"), ("marginRight", "marR")):
+            if key in style:properties[attr] = emu(style[key])
         alignment = style.get("align", align)
         if isinstance(alignment, list):
             alignment = alignment[0]
@@ -195,7 +211,7 @@ def paragraphs_xml(
                 "distributed": "dist",
             }.get(alignment, alignment)
         spacing = ""
-        if not cell:
+        if not cell or "lineHeight" in para.style or "lineHeightPx" in para.style:
             spacing = tag(
                 "a:lnSpc",
                 children=tag(
@@ -223,6 +239,9 @@ def paragraphs_xml(
         content = tag("a:pPr", properties, spacing)
         for run in para.runs:
             runstyle = {**style, **run.style}
+            if run.kind == "break":
+                content += tag("a:br", children=run_properties(runstyle, theme))
+                continue
             if runstyle.get("href") and relationships:
                 runstyle["hyperlinkId"] = relationships.add(
                     "hyperlink", runstyle["href"], external=True

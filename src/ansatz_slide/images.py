@@ -2,6 +2,8 @@
 
 import base64
 import struct
+import math
+import re
 from xml.etree import ElementTree as ET
 
 from .xml import round_half_away, tag
@@ -53,8 +55,27 @@ def image_info(data):
             cursor += length
     if b"<svg" in data[:4096]:
         root = ET.fromstring(data)
-        viewbox = root.get("viewBox", "0 0 1 1").replace(",", " ").split()
-        return "svg", float(viewbox[2]), float(viewbox[3])
+        if root.get("viewBox") is not None:
+            values = root.get("viewBox").replace(",", " ").split()
+            if len(values) != 4:
+                raise ValueError("SVG viewBox must contain four finite numbers")
+            values = [float(v) for v in values]
+            if not all(math.isfinite(v) for v in values):
+                raise ValueError("SVG viewBox must contain four finite numbers")
+            width, height = values[2:]
+        else:
+            units = {"": 1, "px": 1, "in": 96, "cm": 96/2.54,
+                     "mm": 96/25.4, "pt": 96/72, "pc": 16, "Q": 96/101.6}
+            sizes = []
+            for key in ("width", "height"):
+                match = re.fullmatch(r"\s*([+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(px|in|cm|mm|pt|pc|Q)?\s*", root.get(key, ""))
+                if not match:
+                    raise ValueError("SVG without viewBox needs absolute width and height")
+                sizes.append(float(match[1]) * units[match[2] or ""])
+            width, height = sizes
+        if not all(math.isfinite(v) and v > 0 for v in (width, height)):
+            raise ValueError("SVG dimensions must be positive and finite")
+        return "svg", width, height
     raise ValueError("Image must be PNG, JPEG, GIF or SVG")
 
 

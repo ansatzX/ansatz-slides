@@ -27,11 +27,11 @@ These statuses describe compatibility, not the preferred authoring workflow. In 
 
 | Element | Status | Verified boundary |
 | --- | --- | --- |
-| Text | Verified | Rich text, paragraph/list/inline subset, alignment, style inheritance, links and normal text geometry |
+| Text | Verified | Explicit line breaks, fixed/proportional paragraph spacing, paragraph margins, inline highlights/decoration/letter spacing and the documented list/inline subset; unsupported list-style CSS is rejected |
 | Text `rotation` / `opacity` / `flip` | Rejected | Dynamic OOXML inspection proved these values were dropped by the writer |
 | Shape | Verified | All 177 documented preset names generated; custom SVG path requires a valid viewBox/path |
 | Line | Verified | Straight/custom point paths, curve modes, borders, and supported arrowheads; invalid/out-of-viewBox points fail |
-| Image | Verified | Local/remote/data URLs, fit/crop/crop-shape, borders and shadows; local paths must remain inside the project |
+| Image | Verified | Local/remote/data URLs, fit/crop/crop-shape, borders and shadows; SVG fit uses viewBox or absolute dimensions (ambiguous dimensions rejected); local paths must remain inside the project |
 | Nested image fills | Verified | Recursive resolution covers page, element, table-cell/theme-style and other nested image-fill objects; missing/failing images abort export |
 | Icon | Supported with boundary | The core PPTX serializes a private `k:icon` extension plus a generic editable fallback shape; standard consumers may show only the fallback. Use an external PNG/SVG for delivery icons |
 | Table | Verified | Column/row ratios, cell text/styles, border arrays and merged-cell occupancy; a native OOXML table was inspected |

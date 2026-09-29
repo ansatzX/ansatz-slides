@@ -12,6 +12,7 @@ from .project import export_project, load_project
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="ansatz-slide", description=__doc__)
     parser.add_argument("--version", action="version", version="ansatz-slide 0.0.1")
+    parser.add_argument("--compact", action="store_true", help="Summarize work evidence on stdout; full result remains in the work directory")
     commands = parser.add_subparsers(dest="command", required=True)
     validate = commands.add_parser("validate", help="Validate a YAML presentation project")
     validate.add_argument("source")
@@ -45,7 +46,8 @@ def main(argv=None):
     page_actions = page.add_subparsers(dest="page_action", required=True)
     open_page = page_actions.add_parser("open", help="Open a page work object with candidate, matrices and preview")
     open_page.add_argument("project",type=Path)
-    open_page.add_argument("--page",required=True,type=int)
+    open_page.add_argument("--page",required=True,type=int,action="append",help="Repeat to open several independent pages in one call")
+    open_page.add_argument("--no-preview",action="store_true",help="Read for editing without rendering the old page; update still renders and validates")
     open_page.add_argument("--width",type=int,default=1600)
     update_page = page_actions.add_parser("update", help="Update or retry the retained candidate in a revision-bound work object")
     update_page.add_argument("work",type=Path)
@@ -53,6 +55,8 @@ def main(argv=None):
     update_page.add_argument("--element")
     update_page.add_argument("--changes",type=Path)
     update_page.add_argument("--candidate",type=int,default=1)
+    update_page.add_argument("--edits",type=Path,help="List of element/changes patches applied as one checked page revision")
+    update_page.add_argument("--layout",type=Path,help="Deterministic row/column/group/weighted-segment layout of existing elements")
     check_page = page_actions.add_parser("check", help="Expose one page, its rendered preview and bounded context")
     check_page.add_argument("--project", required=True, type=Path)
     check_page.add_argument("--page", required=True, type=int)
@@ -127,6 +131,12 @@ def main(argv=None):
     export_deck.add_argument("--force",action="store_true")
     export_deck.add_argument("--offline",action="store_true")
     export_deck.add_argument("--transition",choices=("none","fade"),default="none")
+    revise_deck=deck_actions.add_parser("revise",help="Apply a version-bound page plan, export once and render final previews")
+    revise_deck.add_argument("project",type=Path)
+    revise_deck.add_argument("--plan",type=Path,required=True)
+    revise_deck.add_argument("-o","--output",type=Path,required=True)
+    revise_deck.add_argument("--force",action="store_true")
+    revise_deck.add_argument("--width",type=int,default=1600)
     args = parser.parse_args(argv)
     try:
         if args.command == "page":
@@ -134,11 +144,15 @@ def main(argv=None):
             if args.page_action in ("open","update"):
                 from . import work_objects as work
                 from .project import parse_document
-                if args.page_action=="open":result=work.open_page(args.project,args.page,args.width)
+                if args.page_action=="open":
+                    results=[work.open_page(args.project,n,args.width,render=not args.no_preview) for n in dict.fromkeys(args.page)]
+                    result=results[0] if len(results)==1 else {'status':'blocked' if any(r['status']!='ready' for r in results) else 'ready','pages':results}
                 else:
                     changes=parse_document(args.changes.read_text(),str(args.changes)) if args.changes else None
                     if bool(args.element)!=bool(args.changes):raise ValueError("Use --element with --changes")
-                    result=work.update(args.work,args.content,args.element,changes,args.candidate)
+                    edits=parse_document(args.edits.read_text(),str(args.edits)) if args.edits else None
+                    layout=parse_document(args.layout.read_text(),str(args.layout)) if args.layout else None
+                    result=work.update(args.work,args.content,args.element,changes,args.candidate,edits=edits,layout=layout)
             elif args.page_action in ("insert","split","merge","move","remove") and args.token is None:
                 from .work_objects import change
                 contents=getattr(args,"content",None)
@@ -168,7 +182,10 @@ def main(argv=None):
                     content=getattr(args, "content", None), position=getattr(args, "position", "after"),
                     anchor_session=getattr(args, "anchor_session", None), anchor_token=getattr(args, "anchor_token", None))
         elif args.command == "deck":
-            if args.deck_action=='create':
+            if args.deck_action=='revise':
+                from .revision import revise
+                result=revise(args.project,args.plan,args.output,force=args.force,width=args.width)
+            elif args.deck_action=='create':
                 from .project import create_project, parse_document
                 if args.project is not None:
                     from .work_objects import create
@@ -239,6 +256,9 @@ def main(argv=None):
                                 str(Path(args.output).resolve().with_suffix(f".page-{number}"))],
                 "scope": "Single-page source/preview loop; final PPTX visual review remains separate",
             }
+        if args.compact:
+            from .output import compact_result
+            result=compact_result(result)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         if (args.command=='page' and args.page_action in ('check','check-overlap') and
                 result.get('status',result.get('geometry',{}).get('status'))=='blocked'):
@@ -248,7 +268,7 @@ def main(argv=None):
     except Exception as exc:
         work_command=(args.command=='page' and (getattr(args,'page_action',None) in ('open','update') or
                       (getattr(args,'page_action',None) in ('insert','split','merge','move','remove') and args.token is None)))
-        work_command=work_command or (args.command=='deck' and (getattr(args,'deck_action',None) in ('outline','export','brief','directive') or
+        work_command=work_command or (args.command=='deck' and (getattr(args,'deck_action',None) in ('outline','export','brief','directive','revise') or
                                                               (getattr(args,'deck_action',None)=='create' and args.project is not None)))
         if work_command:
             from .gates import attach

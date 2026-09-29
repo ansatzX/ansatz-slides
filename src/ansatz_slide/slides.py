@@ -268,7 +268,7 @@ class SlideWriter:
             children=nonvisual(shape_id, element["elementId"], "Pic")
             + blip_fill(
                 relationship,
-                {**element, "fit": {"mode": "fill"}} if extension == "svg" else element,
+                element,
                 (width, height),
             )
             + tag("p:spPr", children=properties),

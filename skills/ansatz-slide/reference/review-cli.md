@@ -26,6 +26,23 @@ the whole project to validate sources. Paths are not delivered image pixels:
 open the returned image with the runtime image tool. Provider-specific image
 injection is outside this CLI.
 
+## Optional compact / multi-page read
+
+`ansatz-slide --compact page open PROJECT --page 2 --page 4 --no-preview`
+returns `pages`, each with its own work reference. A single `--page` keeps the
+single-result shape. `--no-preview` is read-only: it defers old-page text
+measurement and image rendering, marks text unverified, and never skips update
+checks. Source/asset version guards remain active. Invalid schema/geometry still
+blocks. A multi-page open is a set of reads, not a multi-page write transaction.
+
+`--compact` is a global option placed before `page`. The default response and
+Python API are unchanged. Compact output omits inline matrix payloads and passed
+text-element detail, retains source content for read/blocked results, and omits
+redundant page content after successful publication. Full saved evidence is at
+`revisionEvidence`; on conflicts it describes the historical revision, while
+current status/issues/directives remain inline and authoritative. All preview
+paths, geometry failure details, gates and narrative context remain available.
+
 ## Update and repair
 
 Use the exact `work` returned by the preceding operation:
@@ -33,8 +50,16 @@ Use the exact `work` returned by the preceding operation:
 ```bash
 ansatz-slide page update WORK --element body --changes ./fields.yaml
 ansatz-slide page update WORK --content ./candidate.page.yaml
+ansatz-slide --compact page update WORK --edits ./edits.json
 ansatz-slide page update WORK
 ```
+
+`--edits` takes a nonempty list of objects with exactly `element` and `changes`.
+Patches are applied in order to one in-memory candidate, then validated and
+rendered once. Any invalid patch rejects the operation before publication; any
+failed gate retains the combined candidate. It cannot be combined with
+`--content` or `--element`. Layout-only repair restrictions still apply to every
+patch. This is atomic at the existing single-page publication boundary.
 
 The last form retries the retained candidate, for example after a renderer becomes
 available. To apply changes made in the returned `editable` file, pass that path
@@ -337,3 +362,101 @@ Revoked entries disappear from current requirements while their source and befor
 `gates.live.userRequirements` and `gates.live.modelProposals` separate explicit attributed requirements from revisable plans. `gates.facts` identifies the program-produced evidence fields and their candidate/work state; these measurements do not certify semantic acceptance. The existing `gates.live.requirements` field remains for compatibility and carries origin labels. None of these semantic records introduce a new program publication gate.
 
 Keep `.ansatz/narrative.json` and `.ansatz/outline.json` with the source project when its authoring context must survive handoff. Historical evidence is read on demand with `--history`; default reads return active records. Candidate, matrix and typography payloads retain their existing format; this feature does not implement response compression.
+
+
+## One-command multi-page revision and final delivery
+
+After opening target pages, write a JSON/YAML plan. Relative paths resolve against
+the plan file, not the working directory:
+
+```json
+[
+  {"work":"/absolute/returned/work-2", "content":"page2.page.yaml"},
+  {"work":"/absolute/returned/work-4", "edits":[
+    {"element":"title", "changes":{"content":{"text":"Updated title"}}}
+  ]}
+]
+```
+
+```bash
+ansatz-slide deck revise ./deck --plan ./revision.json -o ./next.pptx
+```
+
+Only existing edit work from this project is accepted; each page appears once.
+All work references and patch syntax are checked before the first source write.
+Candidates are then applied through normal work updates, including pending
+layout-only restrictions, text measurement, preview and version guards. A later
+failure stops the plan, retains earlier applied source pages, returns their
+current work references and leaves any existing output PPTX untouched.
+`appliedPages` and `exported` describe these two distinct effects explicitly.
+This command is sequential orchestration, not an atomic whole-deck edit.
+
+The full candidate PPTX is exported offline with no slide transition, inspected
+by the normal exporter, and rendered by LibreOffice/Poppler before publication.
+It is staged under `.ansatz/deliveries/`; output replacement requires `--force`.
+Source changes detected during delivery block final publication. The result
+includes `preview.changedPageImages`, all page images, `timings`, and a persistent
+`report`. These previews render the actual output bytes. Open the changed-page
+images; do not run a duplicate export/inspect/render chain just to get them.
+An unchanged source page can be included with its latest work and existing
+content to retry delivery after a renderer failure. Retained sources/work and
+staging remain available for recovery. Fonts and native PowerPoint/WPS rendering
+are still outside the automatic verification boundary.
+
+Text measurement preserves middle/bottom alignment in an original-height probe
+and also measures an expanded top-aligned probe to expose hidden lines. A
+negative top in the expanded probe alone is not an overflow of a centered frame.
+Do not insert blank lines merely to compensate for the measurement origin;
+use the reported actual-frame bounds and preserve the intended alignment.
+
+## Local edits and calculated layout
+
+A next-version edit should preserve the existing page rather than reserialize it
+from scratch. A plan can combine `edits` (applied first) and `layout` in one check:
+
+```json
+[
+  {
+    "work": "CURRENT_WORK",
+    "edits": [{"element":"take","changes":{"content":{"text":"Updated takeaway"}}}],
+    "layout": [{"kind":"row","items":[["box1","text1"],["box2","text2"]],"bounds":[60,180,820,100]}]
+  },
+  {
+    "work": "OTHER_CURRENT_WORK",
+    "layout": [{"kind":"segments","items":["seg1","seg2","seg3","seg4"],"bounds":[66,236,820,54],"weights":[1.18,1.11,0.11,0.58]}]
+  }
+]
+```
+
+Use with `ansatz-slide --compact deck revise PROJECT --plan plan.json -o next.pptx`.
+For a single page, `page update WORK --layout layout.json` accepts the operation
+list and can combine it with `--edits edits.json`. It cannot combine layout with
+full `--content` or single `--element`; use `edits` for a mixed update.
+
+- `row` / `column`: `items` are IDs or groups of IDs. Translate each group without
+  changing its element sizes, internal offsets, order, text, or styles. `bounds`
+  is the available region. Omitted `gap` distributes remaining space evenly;
+  an explicit nonnegative gap packs from the region start. Cross-axis `align`
+  is `start`, `center` (default), or `end`. Groups too large for the region fail;
+  the operation never silently scales them or shrinks fonts.
+- `segments`: individual shape IDs, one positive finite `weights` value per shape.
+  Divides the region proportionally along `axis` (`x` default, or `y`), with
+  optional nonnegative `gap` (default zero). Only bounds change. Labels are
+  separate elements: patch/arrange them explicitly if needed; no data/text is
+  inferred or invented from the weights.
+- All referenced IDs must exist and occur once per operation. Rotated elements
+  require explicit bounds edits. Unknown options, nonfinite values, insufficient
+  space, and invalid weights are rejected before publication. Operations run
+  sequentially on a candidate copy. Unreferenced elements and page metadata stay
+  unchanged. Existing geometry/text checks and layout-only failure restrictions
+  still apply; these operations cannot authorize content changes or bypass gates.
+
+For a local iteration, open requested pages once, author this small plan, execute
+one delivery command, inspect the returned changed-page images, and return the
+PPTX. Do not regenerate the deck brief, source pages, or a custom layout script
+for a wording/spacing change. A structural redesign may still need full content.
+
+Revision preflight protects local images introduced by **every candidate**, as well
+as the original sources/assets and plan files. These assets cannot be delivery
+output paths; a content change during update/export/final render blocks delivery.
+The source edits already listed in `appliedPages` remain applied on such a failure.

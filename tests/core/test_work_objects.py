@@ -14,6 +14,16 @@ from ansatz_slide.cli import main
 from .test_page_api import fake_render
 
 
+class CompactDeliveryTests(unittest.TestCase):
+    def test_nested_delivery_projection_retains_measured_count(self):
+        from ansatz_slide.output import compact_result
+        page={'format':'page-work-v1','textFit':[{'status':'passed','elements':[{'status':'passed'}]}]}
+        saved=compact_result(page)
+        stdout=compact_result({'pages':[saved]})
+        self.assertEqual(1,stdout['pages'][0]['textFit'][0]['checkedElementCount'])
+        self.assertEqual(saved,stdout['pages'][0])
+
+
 def page(overlap=False,text='Body'):
     return {'elements':[
         {'elementId':'title','elementType':'text','bounds':[1,1,8,3],'content':{'text':'Title'}},
@@ -44,6 +54,62 @@ class WorkObjectTests(unittest.TestCase):
         path=self.project/name;path.write_text(json.dumps(value));return path
 
     def sources(self):return {p.name:p.read_bytes() for p in self.project.glob('*.yaml')}
+
+    def test_read_only_open_defers_render_but_update_still_checks(self):
+        with patch('ansatz_slide.page_api.measure_text') as measure, patch('ansatz_slide.page_api.render_pptx') as render:
+            opened=work.open_page(self.project,1,render=False)
+            measure.assert_not_called();render.assert_not_called()
+        self.assertEqual('unverified',opened['textFit'][0]['status'])
+        before=self.sources()
+        with patch('ansatz_slide.page_api.measure_text',return_value={'status':'blocked','elements':[{'elementId':'body','status':'overflow','reason':'test overflow'}]}):
+            failed=work.update(opened['work'],element='body',changes={'content':{'text':'Changed'}})
+        self.assertFalse(failed['applied']);self.assertEqual(before,self.sources())
+        self.assertEqual('blocked',failed['textFit'][0]['status'])
+
+    def test_multi_patch_checks_once_and_keeps_other_pages(self):
+        opened=work.open_page(self.project,1,render=False);before=self.sources()
+        with patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render) as render:
+            result=work.update(opened['work'],edits=[
+                {'element':'title','changes':{'content':{'text':'New title'}}},
+                {'element':'body','changes':{'content':{'text':'New body'}}}])
+            self.assertEqual(1,render.call_count)
+        self.assertTrue(result['applied']);self.assertEqual(before['2.page.yaml'],self.sources()['2.page.yaml'])
+        before=self.sources()
+        with self.assertRaises(ValueError):
+            work.update(result['work'],edits=[{'element':'title','changes':{'content':{'text':'Must not write'}}},
+                                             {'element':'missing','changes':{'content':{'text':'No'}}}])
+        self.assertEqual(before,self.sources())
+        self.assertEqual('applied',work.update(result['work'])['status'])
+
+    def test_layout_cli_repairs_geometry_without_bypassing_content_lock(self):
+        self.write('1.page.yaml',page(overlap=True))
+        opened=work.open_page(self.project,1,render=False)
+        layout=[{'kind':'column','items':['title','body'],'bounds':[1,1,8,16]}]
+        blocked=work.update(opened['work'],edits=[{'element':'body','changes':{'content':{'text':'Changed'}}}],layout=layout)
+        self.assertFalse(blocked['applied']);self.assertIn('layout-only',str(blocked['issues']))
+        path=self.root/'layout.json';path.write_text(json.dumps(layout))
+        with redirect_stdout(io.StringIO()) as stream:
+            code=main(['page','update',opened['work'],'--layout',str(path)])
+        self.assertEqual(0,code,stream.getvalue())
+        result=json.loads(stream.getvalue())
+        self.assertTrue(result['applied'],result['issues'])
+        self.assertEqual('Body',result['candidates'][0]['page']['elements'][1]['content']['text'])
+
+    def test_compact_multi_open_retains_directives_and_source_but_not_matrices(self):
+        out=io.StringIO()
+        with redirect_stdout(out):
+            code=main(['--compact','page','open',str(self.project),'--page','1','--page','2','--no-preview'])
+        self.assertEqual(0,code);results=json.loads(out.getvalue())['pages']
+        self.assertEqual(2,len(results))
+        for result in results:
+            self.assertIn('page',result['candidates'][0]);self.assertIn('gates',result)
+            self.assertIn('narrative',result['context'])
+            self.assertNotIn('matrices',result['candidates'][0]['geometry'])
+            full=json.loads(Path(result['revisionEvidence']).read_text())
+            self.assertIn('matrices',full['candidates'][0]['geometry'])
+        first=work.update(results[0]['work'],element='title',changes={'content':{'text':'First'}})
+        second=work.update(results[1]['work'],element='title',changes={'content':{'text':'Second'}})
+        self.assertTrue(first['applied']);self.assertTrue(second['applied'])
 
     def test_open_returns_one_page_matrix_and_context_without_token(self):
         r=work.open_page(self.project,1)

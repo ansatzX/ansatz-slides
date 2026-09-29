@@ -194,7 +194,7 @@ def _execute(work,record,snap,items):
     raise ValueError('Unknown work operation')
 
 
-def _process(work,record,snap,*,apply):
+def _process(work,record,snap,*,apply,render=True):
     items,issues=_candidates(work,record,snap)
     previous=record.get('geometryFailures',[0]*len(items))
     failures=[]
@@ -244,7 +244,7 @@ def _process(work,record,snap,*,apply):
                         rendered=api.preview(updated,number,record['candidates'][0],after,record['width'])
                         current_items[0]['preview']={'image':str(after/rendered['image']) if rendered['image'] else None,
                                                      'pptx':str(after/rendered['previewPptx']) if rendered['previewPptx'] else None}
-            else:
+            elif render:
                 rendered=api.preview(snap,record['page'],record['candidates'][0],work,record['width'])
                 result['textFit']=[rendered['typography']]
                 items[0]['preview']={'image':str(work/rendered['image']) if rendered['image'] else None,
@@ -263,10 +263,13 @@ def _process(work,record,snap,*,apply):
                         report=write_precheck(snap['manifest']['size'],page,work/f'blocking-page-{number}')
                         report['matrices']=matrix_payload(report)
                         result['blockingPages'].append({'page':number,'source':str(snap['paths'][number-1]),'geometry':report})
+    if not apply and not render:
+        result['previewStatus']='not_requested'
+        result['textFit']=[{'status':'unverified','reason':'Read-only open skipped rendering; update still requires text measurement and preview.'}]
     return _finish(work,record,result)
 
 
-def open_page(project,number,width=1600):
+def open_page(project,number,width=1600,*,render=True):
     if not 400<=width<=8000:raise ValueError('Width must be 400..8000')
     snap=api.snapshot(project)
     if not 1<=number<=len(snap['pages']):raise ValueError('Page out of range')
@@ -274,21 +277,31 @@ def open_page(project,number,width=1600):
     record={'format':1,'project':str(snap['manifestPath']),'page':number,'width':width,
             'baseToken':api.page_token(snap,number),'operation':{'kind':'edit'},
             'candidates':[snap['pages'][number-1]]}
-    return _process(work,record,snap,apply=False)
+    return _process(work,record,snap,apply=False,render=render)
 
 
-def update(work,content=None,element=None,changes=None,candidate=1):
+def update(work,content=None,element=None,changes=None,candidate=1,*,edits=None,layout=None):
     work,record=_read(work)
     with api.lock(work.parent/'.work.lock'):
         try:snap=_current(work,record)
         except Exception as exc:return _conflict(work,record,str(exc))
         record=copy.deepcopy(record)
         if not 1<=candidate<=len(record['candidates']):raise ValueError('Candidate index out of range')
-        if content is not None and element is not None:raise ValueError('Choose full content or one element update')
+        if sum(value is not None for value in (content,element,edits))>1:raise ValueError('Choose full content, one element update, or edits')
+        if layout is not None and (content is not None or element is not None):raise ValueError('Layout can be combined with edits, not content or element')
         original=record['candidates'][candidate-1]
         if content is not None:record['candidates'][candidate-1]=parse_document(Path(content).read_text(),str(content))
         elif element is not None:
             record['candidates'][candidate-1]=api.patch_element(record['candidates'][candidate-1],element,changes)
+        if edits is not None:
+            if not isinstance(edits,list) or not edits:raise ValueError('Edits must be a nonempty list of {element, changes}')
+            for edit in edits:
+                if not isinstance(edit,dict) or set(edit)!={'element','changes'} or not isinstance(edit['element'],str) or not isinstance(edit['changes'],dict):
+                    raise ValueError('Each edit needs exactly element (string) and changes (object)')
+                record['candidates'][candidate-1]=api.patch_element(record['candidates'][candidate-1],edit['element'],edit['changes'])
+        if layout is not None:
+            from .layout import apply_layout
+            record['candidates'][candidate-1]=apply_layout(record['candidates'][candidate-1],layout)
         failures=record.get('geometryFailures',[])
         if candidate<=len(failures) and failures[candidate-1]>0:
             if _content_signature(original)!=_content_signature(record['candidates'][candidate-1]):

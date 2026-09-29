@@ -83,3 +83,27 @@ class TypographyTests(unittest.TestCase):
         self.assertEqual(a['measuredBounds'],b['measuredBounds'])
         self.assertEqual('passed',b['status'])
         self.assertEqual('unverified',c['status'])
+
+    def test_cjk_middle_alignment_uses_actual_frame_not_forced_top_origin(self):
+        centered=self.element('center','可编辑 PPTX\n正式交付文件',size=17,width=187,height=68,
+                              font='Noto Sans CJK SC',bold=True,align=['center','middle'])
+        top=self.element('top','可编辑 PPTX\n正式交付文件',size=17,width=187,height=68,
+                         font='Noto Sans CJK SC',bold=True,align=['center','top'])
+        small=self.element('small','可编辑 PPTX\n正式交付文件',size=17,width=187,height=20,
+                           font='Noto Sans CJK SC',bold=True,align=['center','middle'])
+        a,b,c=self.measure([centered,top,small])['elements']
+        self.assertEqual('passed',a['status'],a)
+        self.assertEqual('middle',a['alignmentMeasured'])
+        self.assertGreaterEqual(a['measuredBounds'][1],0)
+        self.assertLess(a['unrestrictedBounds'][1],-.5)
+        self.assertEqual('overflow',b['status'])
+        self.assertNotEqual('passed',c['status'])
+
+    def test_bottom_alignment_and_wrapped_overflow_remain_checked(self):
+        okay=self.element('okay','Short text',height=100,align=['left','bottom'])
+        long=self.element('long','A long sentence with many wrapped words. '*20,
+                          width=120,height=30,align=['left','bottom'])
+        a,b=self.measure([okay,long])['elements']
+        self.assertEqual('passed',a['status'],a)
+        self.assertEqual('bottom',a['alignmentMeasured'])
+        self.assertNotEqual('passed',b['status'])

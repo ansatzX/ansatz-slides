@@ -1,5 +1,12 @@
 # Equations: mathematical typesetting, then high-resolution PNG
 
+Author formulas and most mathematical symbols in LaTeX, including inline variables,
+Greek letters, operators and comparison signs. Use `\(x_i\)`, `\(\alpha\)` and
+`\(\geq\)` for supported native inline math; use the full LaTeX rendering route
+below for unsupported expressions. Do not author them as Unicode approximations.
+The Office Math serializer may internally encode a LaTeX command as a Unicode
+glyph inside a math object; that is different from authoring a plain-text formula.
+
 Use genuine mathematical typesetting. Ordinary text with Unicode substitutions,
 flattened scripts or manually positioned glyphs is not a replacement for
 fractions, roots, accents and mathematical spacing. Preserve source meaning;
@@ -61,11 +68,12 @@ with the project. Inspect the final PPTX render for the complete expression,
 scripts, radicals, accents, fraction bars, line spacing, sharpness and readable
 scale. High pixel count does not repair poor mathematical content or tiny type.
 Break a long equation or recompose the page before shrinking central evidence.
-Simple symbols in prose can remain text when unambiguous; displayed mathematical
-relations should use actual typesetting.
+Most mathematical symbols in prose also use LaTeX math. Ordinary language,
+punctuation and proper names remain text; do not mechanically rewrite unrelated
+user material. YAML block scalars preserve backslashes literally; JSON requires
+escaping each backslash (`"\\(x_i\\)"`).
 
 Record the consumer tested. A LibreOffice PDF review does not establish native
-PowerPoint/WPS parity. If SVG is explicitly requested later, note that the current
-exporter uses fill for SVG bounds even with `fit: contain`; match the viewBox
-ratio and verify the target consumer. Do not present vector format alone as a
+PowerPoint/WPS parity. If SVG is explicitly requested later, `fit: contain`/`cover` use the viewBox
+or absolute width/height ratio; verify the target consumer. Do not present vector format alone as a
 sharpness guarantee.

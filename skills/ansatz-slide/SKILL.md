@@ -13,6 +13,18 @@ Preserve supplied facts, user scope and unrelated work. User templates override 
 
 Use the actual installed CLI and available image tools. Do not weaken validation or overwrite a full deck to evade a failed scoped edit. Record only observed checks. Keep working notes in permitted scratch storage, outside the slide content.
 
+## Mathematical notation
+
+Author mathematical expressions and most mathematical symbols in **LaTeX**,
+including inline variables, Greek letters, relations, operators and scripts.
+Do not build formulas from Unicode glyphs such as α, ≥, ∑ or superscript digits.
+For supported editable inline math, write `\(x_i\)` or `\(\alpha \geq 0\)` in
+YAML block/single-quoted text (double the backslashes in JSON strings).
+For full expressions, use the [LaTeX rendering route](reference/equations.md)
+and preserve the `.source.tex`; unsupported native commands are not a reason
+to substitute Unicode text. Ordinary prose, punctuation and proper names remain
+text. This is an authoring rule, not permission to rewrite unrelated supplied text.
+
 ## Choose the needed reference
 
 | Need | Reference |
@@ -33,13 +45,74 @@ Use the actual installed CLI and available image tools. Do not weaken validation
 
 Read only what the task needs. For a new academic talk, understand the argument before layout; a reading note is not automatically a slide outline. A local typography correction does not authorize reauthoring the talk.
 
+## Efficient revision loop
+
+For an existing deck, read only the requested pages and relevant instructions.
+Use `ansatz-slide --compact page open PROJECT --page 2 --page 4 --no-preview`
+when the old version is already available for visual reference. This opens both
+pages in one tool call without rendering old pages again. `textFit: unverified`
+means measurement was deferred, never passed. Updates still run all checks and
+render the new candidate before publication. Omit `--no-preview` when you need
+to see the existing appearance.
+
+Use `--compact` for work commands to avoid repeatedly reading dense matrices and
+successful font reports. Source content is included on open; full evidence stays
+in the returned `revisionEvidence` file. Read detailed evidence when a failure
+needs it. Compact output retains issues, restrictions, live directives and
+neighbor freshness. It is a presentation option, not a weaker check.
+
+For an existing deck with several requested page changes, prefer one delivery
+command after the combined open: `ansatz-slide deck revise PROJECT --plan
+revision.json -o next.pptx`. The plan is a list of `{"work":"WORK_PATH",
+"edits":[...]}` with optional `"layout":[...]`. Prefer these local patches over
+writing a candidate file. Full `"content":"candidate.page.yaml"` is for an
+explicitly requested structural redesign, not routine next-version edits.
+Paths are relative to the plan file. The command applies checked edits sequentially,
+exports once, renders the actual full PPTX and returns changed-page image paths
+plus stage timings. Open those images together and deliver; a second inspect or
+manual Office/Poppler conversion is unnecessary unless evidence is missing.
+Do not regenerate the whole-deck brief for a visual-only revision.
+
+Reuse existing element IDs, styles and groups. For placement, use `layout`:
+`{"kind":"row","items":[["box1","text1"],["box2","text2"]],"bounds":[60,180,820,100]}`
+moves groups intact and calculates equal gaps; `column` does the same vertically.
+`{"kind":"segments","items":["seg1","seg2"],"bounds":[60,240,820,54],"weights":[2,1]}`
+computes weighted bar sizes. Do not hand-calculate every coordinate or introduce
+fresh page-generation scripts for these operations. See the local-layout examples
+in `reference/review-cli.md`. Only change fields requested by the user; layout
+does not silently shrink text, alter styles, or remove content to make it fit.
+
+A revision is NOT an atomic multi-page source write: if a later page fails,
+`appliedPages` lists completed source edits and `pages` gives retained work for
+repair. Remaining edits stop and the previous delivery PPTX stays untouched.
+Repair only the failed/remaining work, then rerun a plan using current references;
+do not blindly replay stale applied entries. If all source edits applied but
+final rendering failed, use a plan with the latest returned work references
+(no-op content is permitted) to retry safely. Final images require model/human
+review; rendering success does not certify meaning or PowerPoint/WPS parity.
+
+Prepare all requested changes together. For several edits on one page, use
+`page update WORK --edits edits.json`, a list of
+`{"element":"title","changes":{"content":{"text":"New title"}}}`.
+This creates one checked revision and one new preview. Use `--content` only when
+replacing the page structure. Independent pages may be opened in one call and
+updated sequentially in one tool invocation; do not run concurrent source writers.
+Check each result and stop on failure. Reuse the returned work references; do not
+reopen pages just to obtain another reference. Open the changed-page images
+together when the runtime permits. Record only affected outline entries; rewrite
+the whole-deck brief only when its premise/section argument actually changes.
+
+On text failure read `overflowEdges` and `repairHint`: a negative top/left edge
+is not solved merely by enlarging width/height. Inspect paragraph/font layout
+instead of repeatedly growing the frame. Never delete content to silence a gate.
+
 ## Normal authoring loop
 
 1. Prepare settings, a first-page candidate and project-local assets using the starter. Run `deck create PROJECT --settings FILE --content FILE`.
-2. Use the returned `work`, or `page open PROJECT --page N` for an existing page. Read `context.previous/current/next` and open the actual returned preview image.
-3. Use `page update WORK --element ID --changes FILE` for a small change, or `--content FILE` for a complete candidate. Continue with the newly returned work reference.
-4. Record a short whole-deck purpose, audience, central claim and section argument with `deck brief`; keep page purpose, claim, evidence and connections in `deck outline`. Use `page insert/split/merge/move/remove` when readable content needs a different page arrangement.
-5. Export the integrated deck and inspect that exact PPTX before delivery.
+2. Use the returned `work`, or open requested pages together. Always retain live directives; review neighboring logic when the argument/order changes. Existing-deck visual/text corrections follow the efficient loop above instead of restarting authoring.
+3. Batch small changes with `edits` and computed placement with `layout`. Use full `--content` only for a requested structural redesign. Continue with the returned work reference.
+4. For a new deck record purpose, audience, central claim and section argument with `deck brief`; keep page intents in `deck outline`. Update these only when their meaning changes. Use `page insert/split/merge/move/remove` when page structure needs to change.
+5. Deliver after checking the actual final PPTX previews. `deck revise` already exports and structurally inspects the artifact; do not repeat that tool chain. Open changed-page images together and promptly return the file; prepare extensive logs only if requested.
 
 Formal YAML has a first-line CLI reminder: edit candidates and publish through the CLI instead of directly rewriting existing formal files. The reminder is not a filesystem permission barrier. Page filenames identify sources; manifest order defines page numbers.
 

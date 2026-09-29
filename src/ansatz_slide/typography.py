@@ -65,6 +65,7 @@ def check_page(size, page, theme, folder):
     if max(probe_width,probe_height)>10000:
         raise RuntimeError('Text measurement probe exceeds supported size; split the page before measuring')
     package=Package()
+    aligned_probes={}
     for number,(element,item) in enumerate(entries,1):
         candidate=copy.deepcopy(element);candidate['bounds']=[margin,margin,element['bounds'][2],probe_height-2*margin]
         candidate.pop('animations',None)
@@ -73,7 +74,20 @@ def check_page(size, page, theme, folder):
         candidate['content']['align']=[align[0] if isinstance(align,list) else align,'top']
         # Internal probe serialization intentionally has no publication path.
         SlideWriter(package,number,theme or {},{},[probe_width,probe_height],{'effect':'none','speed':'fast'}).write({'elements':[candidate]})
-    source=folder/'text-probe.pptx';source.write_bytes(package.finish([probe_width,probe_height],len(entries)))
+    # The tall, top-aligned probe reveals hidden lines, but its origin is not
+    # the origin of centered/bottom-aligned text in the actual frame. Measure
+    # those frames too, in the same Office conversion rather than guessing an
+    # alignment offset from font metrics.
+    for index,(element,item) in enumerate(entries):
+        align=element['content'].get('align')
+        if isinstance(align,list) and len(align)>1 and align[1] in ('middle','bottom'):
+            number=len(entries)+len(aligned_probes)+1
+            aligned_probes[index]=number-1
+            candidate=copy.deepcopy(element)
+            candidate['bounds'][:2]=[margin,margin]
+            candidate.pop('animations',None);candidate.pop('rotation',None)
+            SlideWriter(package,number,theme or {},{},[probe_width,probe_height],{'effect':'none','speed':'fast'}).write({'elements':[candidate]})
+    source=folder/'text-probe.pptx';source.write_bytes(package.finish([probe_width,probe_height],len(entries)+len(aligned_probes)))
     profile=(folder/'text-office-profile').resolve()
     try:
         run_command([office,'-env:UserInstallation='+profile.as_uri(),'--headless','--convert-to','pdf','--outdir',str(folder.resolve()),str(source.resolve())],folder)
@@ -81,7 +95,7 @@ def check_page(size, page, theme, folder):
         if not pdf.is_file():raise RuntimeError('Text measurement did not produce a PDF')
         run_command([extractor,'-bbox','-enc','UTF-8',str(pdf.resolve()),str(bbox.resolve())],folder)
         pages=ET.parse(bbox).getroot().findall('.//{*}page')
-        if len(pages)!=len(entries):raise RuntimeError('Text measurement page count mismatch')
+        if len(pages)!=len(entries)+len(aligned_probes):raise RuntimeError('Text measurement page count mismatch')
         import subprocess
         for number,((element,item),pdfpage) in enumerate(zip(entries,pages),1):
             result=subprocess.run([fonts,'-f',str(number),'-l',str(number),str(pdf.resolve())],capture_output=True,text=True,timeout=60)
@@ -94,6 +108,17 @@ def check_page(size, page, theme, folder):
             top=min(float(w.attrib['yMin']) for w in words)-margin
             right=max(float(w.attrib['xMax']) for w in words)-margin
             bottom=max(float(w.attrib['yMax']) for w in words)-margin
+            intrinsic_height=bottom-top
+            if number-1 in aligned_probes:
+                item['unrestrictedBounds']=[left,top,right-left,intrinsic_height]
+                actual_words=pages[aligned_probes[number-1]].findall('.//{*}word')
+                if [w.text for w in actual_words]!=[w.text for w in words]:
+                    item['reason']='Original aligned frame clipped or changed measured text; enlarge the frame';continue
+                left=min(float(w.attrib['xMin']) for w in actual_words)-margin
+                top=min(float(w.attrib['yMin']) for w in actual_words)-margin
+                right=max(float(w.attrib['xMax']) for w in actual_words)-margin
+                bottom=max(float(w.attrib['yMax']) for w in actual_words)-margin
+                item['alignmentMeasured']=element['content']['align'][1]
             item.update(measuredBounds=[left,top,right-left,bottom-top],
                         requiredWidth=max(0,right)-min(0,left),requiredHeight=max(0,bottom)-min(0,top),
                         wordCount=len(words))
@@ -101,8 +126,15 @@ def check_page(size, page, theme, folder):
             tolerance=0.5  # PDF coordinate/font rounding in source point units.
             if right>=probe_width-2*margin-tolerance or bottom>=probe_height-2*margin-tolerance:
                 item['reason']='Text reaches the probe limit; measurement may be clipped'
-            elif left < -tolerance or top < -tolerance or right>w+tolerance or bottom>h+tolerance:
-                item.update(status='overflow',reason=f"needs approximately {item['requiredWidth']:.2f} × {item['requiredHeight']:.2f} pt; frame is {w} × {h} pt")
+            elif left < -tolerance or top < -tolerance or right>w+tolerance or bottom>h+tolerance or intrinsic_height>h+tolerance:
+                overflow={edge:round(amount,4) for edge,amount in
+                          [('left',-left),('top',-top),('right',right-w),('bottom',bottom-h)] if amount>tolerance}
+                if intrinsic_height>h+tolerance:overflow['height']=round(intrinsic_height-h,4)
+                detail=', '.join(f'{edge} {amount:.2f} pt' for edge,amount in overflow.items())
+                hint=('Top/left overflow is a local text-origin/line-metric issue; enlarging frame width/height alone does not fix it. Inspect font and paragraph spacing.'
+                      if 'top' in overflow or 'left' in overflow else 'Adjust wrapping, frame dimensions or typography while preserving content.')
+                item.update(status='overflow',overflowEdges=overflow,repairHint=hint,
+                            reason=f"overflows {detail}; local bounds [{left:.2f}, {top:.2f}, {right:.2f}, {bottom:.2f}]; frame {w} × {h} pt. {hint}")
             else:item['status']='passed'
     finally:
         shutil.rmtree(profile,ignore_errors=True)

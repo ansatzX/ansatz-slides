@@ -322,10 +322,10 @@ class Validator:
                 "text-align line-height margin-top margin-left margin-right".split()
             ),
             "li": set(
-                "text-align line-height letter-spacing margin-top margin-left list-style list-style-type list-style-position list-style-image".split()
+                "text-align line-height letter-spacing margin-top margin-left".split()
             ),
             "span": set(
-                "color font-size font-family background-color font-weight font-style text-decoration".split()
+                "color font-size font-family background-color font-weight font-style text-decoration letter-spacing".split()
             ),
         }.get(tag, set())
         numeric = r"[-+]?(?:\d+\.?\d*|\.\d+)"
@@ -358,6 +358,9 @@ class Validator:
                 enum(value, at, {"normal", "italic", "oblique"})
             if key == "text-align":
                 enum(value, at, H_ALIGN)
+            if key == "text-decoration" and (not set(value.split()) <= {"none", "underline", "line-through"}
+                                                or ("none" in value.split() and value != "none")):
+                fail(at, "supported text-decoration: none, underline, line-through")
 
     def rich_text(self, v, at):
         string(v, at)

@@ -657,10 +657,9 @@ interface TextContent {
 | `letter-spacing` | Letter spacing |
 | `margin-top` | Spacing before the paragraph |
 | `margin-left` | Left margin |
-| `list-style` | List style shorthand |
-| `list-style-type` | List marker type |
-| `list-style-position` | List marker position |
-| `list-style-image` | List marker image |
+
+The `list-style*` CSS properties are rejected; use `<ul>` or `<ol>` for the
+supported bullet or decimal marker. Custom marker styling is not silently ignored.
 
 3. **Inline styles (only `<span>` supports them)**
 
@@ -671,6 +670,9 @@ Styles apply only to the text inside that `<span>`.
 | `color` | Text color | [Color](#color) (HEX6 / HEX8 / theme reference) | `<span style="color:$primary">…</span>` |
 | `font-size` | Font size | px string (e.g. `24px`) | `<span style="font-size:24px">…</span>` |
 | `font-family` | Font family | Font name (e.g. `Arial`, `"Arial, 微软雅黑"`) | `<span style="font-family:Arial">…</span>` |
+| `letter-spacing` | Additional character spacing | px string | `<span style="letter-spacing:1px">…</span>` |
+| `font-style` | Italic style | `normal` / `italic` / `oblique` (italic) | — |
+| `text-decoration` | Decoration | `none`, `underline`, `line-through`, or both latter values | — |
 | `background-color` | Text background color | [Color](#color) (HEX6 / HEX8 / theme reference) | `<span style="background-color:$accent">…</span>` |
 
 
@@ -694,9 +696,15 @@ content:
     Second line
   ```
   ≡ `<p>First line</p><p>Second line</p>`
-- `<br/>` may be used for a line break within a paragraph, but it is not guaranteed to be preserved on re-conversion after editing. When stable line breaks are needed, use multiple `<p>`.
+- `<br/>` exports an explicit DrawingML line break inside the same paragraph. Use `<p>` for a separate paragraph.
 
 **LaTeX formulas**
+
+Author formulas and most mathematical symbols (including inline variables, Greek
+letters, operators, relations and scripts) as LaTeX, not plain Unicode substitutes.
+For example, write `\(\alpha \geq 0\)` rather than a plain-text sequence of
+mathematical glyphs. This does not prohibit ordinary Unicode prose. Full expressions
+outside the native subset use the LaTeX-to-PNG route with retained source.
 
 Rich text supports a **limited LaTeX-to-Office-Math subset** with the `\(...\)` delimiters. It is not a full TeX engine: unknown commands remain literal text. For unsupported expressions and final rendering checks, see [equation routes](equations.md).
 
