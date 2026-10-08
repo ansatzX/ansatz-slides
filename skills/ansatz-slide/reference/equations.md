@@ -77,3 +77,9 @@ Record the consumer tested. A LibreOffice PDF review does not establish native
 PowerPoint/WPS parity. If SVG is explicitly requested later, `fit: contain`/`cover` use the viewBox
 or absolute width/height ratio; verify the target consumer. Do not present vector format alone as a
 sharpness guarantee.
+
+The LibreOffice-backed reviewed publication path explicitly blocks native inline
+Office Math in both text and table cells. This avoids certifying literal fallback
+LaTeX or silently omitted table formulas. Use the PNG route above for that path.
+Raw export continues to preserve native editable math, with target-consumer
+verification required; no Unicode or flattened-text fallback is substituted.

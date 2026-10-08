@@ -145,7 +145,7 @@ class GeometryGateTests(unittest.TestCase):
         # An unchecked change to another page cannot be published via order edits.
         self.write('2.page.yaml',page(True));before=self.sources()
         with self.assertRaises(GeometryError):
-            page_api.change_order(self.root/'s1',r['token'],'insert',content=self.root/'1.page.yaml')
+            page_api.change_order(self.root/'s1',r['token'],'insert',content=self.root/'1.page.yaml',allow_duplicates=True)
         self.assertEqual(before,self.sources())
 
     def test_diagnostic_cli_exit_is_failure_with_json_artifacts(self):

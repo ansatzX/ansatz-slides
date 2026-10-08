@@ -185,10 +185,10 @@ results, and `deck export` measures the same loaded text it will serialize befor
 replacing the output. Missing LibreOffice, `pdftotext` or `pdffonts` is a blocker,
 not a text-fit pass. No automatic font shrinking or content deletion is performed.
 
-Scope is explicit: horizontal native text elements, including their emitted rich
-text and Office Math, are measured. Vertical text is currently unverified and
-blocks this gate. Internal table/chart labels are listed as unmeasured objects;
-image-contained text is not native text. These require visual review. Probes have
+Scope is explicit: horizontal native text and emitted rich text are measured.
+Vertical text and native Office Math remain unverified and block this gate.
+Tables receive a separate consumer silhouette/expansion check; chart labels
+remain unmeasured. Image-contained text is not native text. All require visual review. Probes have
 finite limits and report unverified when reached. Word extents do not prove glyph
 fidelity or reading quality. `validate`, legacy `export` and the low-level Python
 writer retain their schema/geometry contracts; use `deck export` for this text gate.
@@ -460,3 +460,81 @@ Revision preflight protects local images introduced by **every candidate**, as w
 as the original sources/assets and plan files. These assets cannot be delivery
 output paths; a content change during update/export/final render blocks delivery.
 The source edits already listed in `appliedPages` remain applied on such a failure.
+
+### Rendering failures and evidence boundaries
+
+After an execution/rendering failure, read `issues[].diagnostic` for the local
+traceback. Repair the returned candidate with `page update <returned-work>
+--content FILE`; a failed insertion retains its insertion operation. Use the
+returned work reference: operations that reach candidate processing supersede
+older references, while early rejections may retain the same one. For source conflicts use the stable resume/rebase commands below; reopen only
+to explicitly abandon a pending candidate or to rebuild both merge/move anchors.
+
+Text measurement now checks extracted text against source as well as occupied
+bounds. A mismatch blocks publication and needs font/glyph/content inspection.
+This is not a glyph-appearance certificate: `visualAcceptance` remains unverified,
+and chart labels remain outside automatic text-fit measurement. Table silhouette
+measurement does not certify internal typography or glyph appearance. Review
+these in the rendered page; font names and a passed size check alone are not
+acceptance. On macOS inspect the actual LibreOffice font configuration; do not
+assume system font installation makes a font visible to that renderer.
+
+Native Office Math in text or tables is not reliably rendered by LibreOffice.
+The reviewed `page`/`deck` publication workflow blocks such candidates with an
+explicit instruction to use the LaTeX-to-PNG route. Raw `export` retains editable
+Office Math for review in the intended consumer; it is not visual certification.
+
+Actual PDF rendering also checks that each table cell's text survives extraction.
+Missing/changed text blocks publication and retains `table-text-N.txt` evidence;
+this detects known merged-cell import loss, but does not prove table text fits or
+that every glyph looks correct. This machine's LibreOffice 26.8 reproduces a
+combined row/column-span defect even for independently generated python-pptx
+files. Native merge XML is preserved; no silent unmerge or content deletion is
+used to force this consumer to pass.
+
+### 批量建页 / 插页与重复提交保护
+
+避免循环解析巨大 work JSON 再逐页 insert。先用结构化 YAML/JSON 生成页面文件和一个**有序文件路径列表**（路径相对 plan 文件）：
+
+```json
+["intro.page.yaml", "results.page.yaml", "summary.page.yaml"]
+```
+
+```bash
+# 新项目：所有候选通过检查后，一次发布清单。
+ansatz-slide deck import-pages ./deck --settings settings.yaml --plan pages.json --request-id initial-v1
+# 已有项目：插到第 2 页之后；--after 0 插到开头，省略则追加。
+ansatz-slide deck import-pages ./deck --plan additional.json --after 2 --request-id append-v1
+ansatz-slide deck resume /absolute/deck/.ansatz/batches/append-v1
+```
+
+保存返回的 `resumeToken`。失败时编辑 `candidateFiles` 中保留的文件，再 resume；一批失败不发布部分页面。同一 request-id、相同原始输入只执行一次；已应用后的重复请求返回历史收据，不重复插页，也不表示当前文件仍与当时相同。相同 ID 换输入会被拒绝。默认拒绝批内或与现有页内容完全相同的页面；有意重复需在新请求中显式 `--allow-duplicates`。
+
+修改源清单/已有源文件后，旧批次不会自动换基线：检查当前 outline，再用新 request-id 准备新批次。中断后若清单和新增文件与保存的 publication intent 完全一致，resume 会恢复收据；若处于无法判定的发布状态，会保留诊断和恢复文件并拒绝重复插入。不要删除这些记录再重试同一批次。图片资源仍相对项目根目录。
+
+### 结构操作后的 work 恢复
+
+每次 page work 结果包含稳定的 `resumeToken`，指向整个修订链，而非单次 revision：
+
+```bash
+ansatz-slide page resume /absolute/deck/.ansatz/work/LINEAGE
+ansatz-slide page rebase /absolute/deck/.ansatz/work/LINEAGE
+# 原源文件已从清单移除时，先查看当前 outline，再明确选择新的页/插入锚点。
+ansatz-slide page rebase /absolute/deck/.ansatz/work/LINEAGE --page 2
+```
+
+resume 只找最新候选、检查版本，不写源文件。rebase 按源路径恢复重排后的页码；原路径消失时不猜测新页码。失败候选及其待执行 insert/edit/split 会保留；已经应用的候选则从当前源重新读取，避免恢复旧内容。rebase 本身不应用，先检查返回的候选和当前上下文，再执行返回的 page update。merge/move 的第二个锚点可能也过期，必须重开两个当前页面后重新发起。
+
+### 表格与修复信息
+
+`check-text` / checked preview 现在也测量表格：复制原表的文字、字体、列宽、行高和合并结构到独立的大画布，仅将单元格填充变为黑色，通过实际 LibreOffice PDF 的 144 dpi 轮廓测量检测行高扩张，包括空单元格。`measuredBounds`、`requiredHeight` 和 `overflowEdges` 给出当前消费者实测值，不套用固定“28pt 最小行高”。探针抵达画布边缘或无法提取文字时不判通过；原样 PPTX 仍需逐页视觉检查，PowerPoint/WPS 与字体外观未由此验证。
+
+失败结果的 `repair`、`next`、`gates.hard.activeRestrictions` 是修复入口。geometry 失败仍只能调整 bounds/rotation/顺序，或保留内容拆页；文字/表格溢出按测得尺寸扩框、重排邻居或拆分内容，之后再次检查几何。不要删文字或降低质量来绕过检查，也不要用 sed 猜测 YAML 的块列表布局；用结构化解析写回，或使用 `page update --edits`。坐标与测量均是 pt，不能把页面坐标理解为屏幕像素。
+
+### 单页插入也默认阻止重复内容
+
+`page insert WORK --content FILE`（以及旧 session/token 入口）在渲染和发布前比较当前 deck 的页面内容；完全相同的页面会被阻止，映射字段顺序不同不构成新内容。被删除但仍保留在磁盘的页面不算当前 deck 重复，因此可以正常恢复。
+
+有意重复时使用 `page insert WORK --content FILE --allow-duplicates`。若重复候选已被保留，可明确使用 `page update RETURNED_WORK --allow-duplicates`；该开关只适用于待插入候选，不跳过版本、几何、文字或渲染检查。旧 work 仍然不能重复提交。
+
+列表的 text-fit 比较识别 `<ul><li>` 自动产生的项目符号和 `<ol><li>` 的段落编号，但不从正文任意删除符号/数字。字形边界仍包括这些标记，因此列表溢出仍会失败；此检查不证明编号语义或字体外观正确。

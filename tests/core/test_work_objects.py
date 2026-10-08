@@ -239,7 +239,7 @@ class WorkObjectTests(unittest.TestCase):
     def test_structural_failure_returns_matrix_of_other_blocking_page(self):
         self.write('2.page.yaml',page(True))
         r=work.open_page(self.project,1);new=self.write('insert.page.yaml',page())
-        blocked=work.change(r['work'],'insert',[new])
+        blocked=work.change(r['work'],'insert',[new],allow_duplicates=True)
         self.assertEqual('blocked',blocked['status'])
         self.assertEqual(2,blocked['blockingPages'][0]['page'])
         self.assertEqual(2,decode(blocked['blockingPages'][0]['geometry']['matrices'],'counts')[2][1])

@@ -5,6 +5,7 @@ height constraint. PDF word extents expose occupied space before clipping.
 """
 import copy
 import json
+import re
 from pathlib import Path
 import shutil
 import xml.etree.ElementTree as ET
@@ -13,6 +14,27 @@ from .package import Package
 from .slides import SlideWriter
 from .rendering import run_command
 from .richtext import RichTextParser
+
+
+def matches_rendered_text(paragraphs, extracted):
+    """Compare authored text, accounting only for emitted paragraph leaders.
+
+    Do not strip arbitrary punctuation from the PDF: literal bullets/digits in
+    runs remain required. Number leaders are consumer-generated arabicPeriod
+    markers; this check verifies text preservation, not numbering semantics.
+    """
+    normalize=lambda value: ''.join(value.split()).replace('\u00ad','')
+    remaining=normalize(extracted)
+    for para in paragraphs:
+        marker=para.style.get('bullet')
+        if marker:
+            match=re.match(r'[0-9]+\.' if marker=='number' else '•',remaining)
+            if not match:return False
+            remaining=remaining[match.end():]
+        text=normalize(''.join(run.value for run in para.runs))
+        if not remaining.startswith(text):return False
+        remaining=remaining[len(text):]
+    return not remaining
 
 
 class TextFitError(ValueError):
@@ -27,9 +49,17 @@ def check_page(size, page, theme, folder):
     folder=Path(folder);folder.mkdir(parents=True,exist_ok=True)
     report={'status':'passed','engine':'LibreOffice + Poppler pdftotext',
             'units':'pt (same as source coordinates)','elements':[],
-            'unmeasuredObjects':[e.get('elementId') for e in page.get('elements',[]) if e.get('elementType') in ('table','chart')],
-            'scope':'Native text elements; table/chart internal labels are not measured by this check. Target PowerPoint/WPS layout may differ.'}
+            'unmeasuredObjects':[e.get('elementId') for e in page.get('elements',[]) if e.get('elementType') in ('chart',)],
+            'visualAcceptance':{'status':'unverified','reason':'Measured bounds do not verify glyph appearance, native equations, or table/chart text.'},
+            'scope':'Native text and isolated table silhouettes measured in LibreOffice. Chart labels and target PowerPoint/WPS remain unverified.'}
     entries=[]
+    # LibreOffice does not reliably render Office Math in DrawingML tables or
+    # AlternateContent. Do not certify literal fallback / omitted equations.
+    for element in page.get('elements',[]):
+        if element.get('elementType')=='table':
+            if any('\\(' in cell.get('text','') for row in element.get('rows',[]) for cell in row):
+                report['elements'].append({'elementId':element['elementId'],'status':'unverified',
+                    'reason':'Native table equations cannot be verified by LibreOffice. Use typeset equation images or move formulas outside the table; inspect in the target consumer.'})
     for element in page.get('elements',[]):
         if element.get('elementType')!='text':continue
         content=element.get('content',{})
@@ -37,7 +67,7 @@ def check_page(size, page, theme, folder):
         text=''.join(run.value for para in parser.paragraphs for run in para.runs)
         if not text.strip():continue
         item={'elementId':element['elementId'],'bounds':element['bounds'],
-              'status':'unverified','requestedStyles':[], 'wrap':content.get('wrap',True)}
+              'sourceText':text,'status':'unverified','requestedStyles':[], 'wrap':content.get('wrap',True)}
         base={'fontFamily':'MiSans','fontSize':16,'lineHeight':1.2,'bold':False,'italic':False,
               **(theme or {}).get('textStyles',{}).get((content.get('style') or '').lstrip('$'),{}),**content}
         for para in parser.paragraphs:
@@ -46,9 +76,14 @@ def check_page(size, page, theme, folder):
                 item['requestedStyles'].append({k:style.get(k) for k in
                     ('fontFamily','fontSize','bold','italic','lineHeight','lineHeightPx','letterSpacing','marginTop')})
         report['elements'].append(item)
-        if content.get('textDirection')=='vertical':
+        if '\\(' in text:
+            item['reason']='Native Office Math cannot be verified by LibreOffice. Use the LaTeX-to-PNG route for this publication workflow; raw export retains editable Office Math for target-consumer review.'
+        elif content.get('textDirection')=='vertical':
             item['reason']='Vertical text requires a dedicated measurement layout; not treated as fitting'
         else:entries.append((element,item))
+    from .table_measurement import check_tables
+    tables=[e for e in page.get('elements',[]) if e.get('elementType')=='table' and not any('\\(' in c.get('text','') for row in e.get('rows',[]) for c in row)]
+    report['elements'].extend(check_tables(tables,theme,folder/'tables'))
     if not entries:
         report['status']='blocked' if any(e['status']!='passed' for e in report['elements']) else 'passed'
         (folder/'text-fit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
@@ -104,6 +139,13 @@ def check_page(size, page, theme, folder):
             words=pdfpage.findall('.//{*}word')
             if not words:
                 item['reason']='Renderer produced no measurable text; glyphs or font extraction may be missing';continue
+            extracted=''.join(w.text or '' for w in words)
+            normalize=lambda value: ''.join(value.split()).replace('\u00ad','')
+            parser=RichTextParser();parser.feed(str(element.get('content',{}).get('text','')));parser.close()
+            if not matches_rendered_text(parser.paragraphs,extracted):
+                item['reason']='Rendered text extraction differs from source; check missing glyphs, font substitution, and equations'
+                item['extractedText']=extracted
+                continue
             left=min(float(w.attrib['xMin']) for w in words)-margin
             top=min(float(w.attrib['yMin']) for w in words)-margin
             right=max(float(w.attrib['xMax']) for w in words)-margin
@@ -170,4 +212,4 @@ def check_loaded(pptd, root):
             report['page']=number
             require_pass(report)
     return {'status':'passed','pageCount':len(pptd['pages']),'engine':'LibreOffice + Poppler',
-            'scope':'Native horizontal text elements; other text-bearing object types need separate review'}
+            'scope':'Native horizontal text and isolated table silhouettes; charts and target-consumer appearance need separate review'}

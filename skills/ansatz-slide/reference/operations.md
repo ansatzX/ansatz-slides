@@ -51,3 +51,15 @@ Use actual paths. `deck export` defaults to no transition; the older `export` an
 Existing output requires `--force`. It controls output replacement only, never bypasses schema or geometry checks. Output must not replace source files or referenced assets. `--offline` rejects remote images; otherwise export may fetch explicitly referenced HTTP/HTTPS assets. Page previews require local or data-URL assets. All local paths must stay within the project.
 
 Use [page replacement](page-edit.md) when preserving the other pages of an existing PPTX. For final evidence and handoff, follow [delivery checks](delivery-checks.md). Legacy session/token integration is documented separately in [compatibility commands](review-cli-legacy.md).
+
+### Font appearance on macOS
+
+A successful text extraction or `pdffonts` listing does not prove visible Chinese
+glyphs. Inspect the actual PNG/PDF before delivery. One tested macOS LibreOffice
+26.8 installation rendered tofu until appropriate licensed local fonts were made
+available to LibreOffice; this is an environment observation, not a claim that
+all macOS headless installations ignore system fonts. Investigate the actual
+font configuration/profile used by the CLI before changing anything. The tool
+uses isolated conversion profiles; do not assume another GUI/profile's font
+availability carries over. Font copying or system configuration is not performed
+automatically by the skill, and a visual font failure remains a failed delivery.

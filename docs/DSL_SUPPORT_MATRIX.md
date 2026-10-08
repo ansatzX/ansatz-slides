@@ -1,6 +1,6 @@
 # Executable pptx.yaml support matrix
 
-This matrix records what the current `ansatz-slide` package actually validates and exports. The executable authority is `src/ansatz_slide/validation.py`; the prose format reference is secondary.
+This matrix records what the current `ansatz-slide` package actually validates and exports. Executable boundaries are enforced by the validator, occupancy gate and publication code. Use [the field reference](../skills/ansatz-slide/reference/presentation-schema.md) for syntax and [work objects](../skills/ansatz-slide/reference/review-cli.md) for the current authoring interface.
 
 These statuses describe compatibility, not the preferred authoring workflow. In normal production, figures, charts, and finished tables come from a dedicated tool or the user as PNG/SVG assets; pptx.yaml/PPTX performs layout, captions, annotations, and sourcing. Native chart/table DSL remains tested so existing legal inputs cannot silently degrade.
 
@@ -22,6 +22,21 @@ These statuses describe compatibility, not the preferred authoring workflow. In 
 | Page background, notes, element order | Verified | Solid/gradient/image backgrounds and notes serialize; array order controls stacking |
 | Slide-level fade/none transition | Verified | Root-level transition ordering inspected in generated slide XML |
 | Arbitrary PPTX to pptx.yaml | Not provided | pptx.yaml to PPTX is the implemented direction |
+
+## Authoring, publication and review
+
+| Surface | Behavior | Boundary |
+| --- | --- | --- |
+| `deck create`, `page open/update` | Retain candidates, run geometry and Office preview before publication | Requires local rendering tools; formal YAML carries a CLI-edit reminder, not access control |
+| `page insert/split/merge/move/remove` | Modify local page structure and check the resulting page set | Retired sources remain; full-deck PPTX is exported separately |
+| Geometry gate | Reject undeclared positive-area intersections and out-of-canvas bounds | Conservative rectangle envelopes; not glyph/ink/overflow detection; no skip flag |
+| Native text fit | Measure fonts, sizes, wrapping and required dimensions through LibreOffice before page publication and `deck export` | Horizontal text frames; table/chart labels and image text need separate review; vertical text is unverified |
+| Failure repair | Work objects freeze content after geometry failure; three failures suggest splitting | Suggestion is optional; legacy sessions do not have this work-chain rule |
+| Version checks | Check source and preview asset dependencies around publication | Recoverable local writes, not isolation from arbitrary external filesystem writers |
+| Lock ownership | Kernel-owned locks release on process exit | Persistent lock files must not be deleted; native platform behavior needs platform-specific testing |
+| `deck outline` | Model-authored intent with page/asset/appearance/neighbor freshness | Does not grade argument quality or satisfy semantic requirements |
+| `gates.hard` / `gates.live` | Separate executable rejection from model requirements and suggestions | A program pass is not semantic or visual acceptance |
+| `replace-page` | Preserve non-target slide identities and XML/resource semantics | Full candidate export followed by one-slide transfer; no page-count change |
 
 ## Elements
 
@@ -53,7 +68,7 @@ These statuses describe compatibility, not the preferred authoring workflow. In 
 - Export success is not used as evidence that an input is valid. Validation happens before the Python writer and before output creation.
 - Figures, charts, and finished tables should be supplied as user/external PNG/SVG assets; when unavailable, use a clearly labeled placeholder frame. Native chart/table DSL is a compatibility path, not the default production path.
 - Browser screenshots, Office/LibreOffice renders, and animation playback are separate evidence layers. OOXML/ZIP inspection alone is not a visual pass.
-- A one-page edit uses `ansatz-slide replace-page`; the whole ZIP need not be byte-identical, but every non-target slide keeps the same slide ID, presentation relationship ID, canonical slide/rels semantics, and recursively associated resource content.
+- A source page edit uses `page open/update`. To update one slide of an existing binary while preserving others, use `replace-page`; whole-ZIP byte equality is not required.
 
 ## Evidence retained in this workspace
 
@@ -63,4 +78,4 @@ These statuses describe compatibility, not the preferred authoring workflow. In 
 - Starter export/OOXML regression: `tests/core/test_authoring_start.py`
 - Incremental preservation regressions: `tests/core/test_incremental_replace_pptx.py`
 
-Historical scratch reports are not shipped or assumed present. Use retained fixtures and current test runs for reproducible structural checks; a regression pass does not replace target-consumer visual review. See the skill's `reference/delivery-checks.md` for claim-specific evidence.
+Historical scratch reports are not shipped or assumed present. Use retained fixtures and current test runs for reproducible structural checks; a regression pass does not replace target-consumer visual review. See [delivery checks](../skills/ansatz-slide/reference/delivery-checks.md) for claim-specific evidence.

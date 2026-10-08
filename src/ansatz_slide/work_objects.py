@@ -3,6 +3,7 @@ import copy
 import json
 from pathlib import Path
 import uuid
+import traceback
 
 from . import page_api as api
 from . import outline
@@ -77,10 +78,13 @@ def _read(work):
 
 
 def _finish(work,record,result):
-    result={'format':'page-work-v1','work':str(work),**result}
+    result={'format':'page-work-v1','work':str(work),'resumeToken':str(work.parent),**result}
     attach_gates(result)
     result['next']={'command':['ansatz-slide','page','update',str(work)],
                     'hint':'Modify a candidate with --element ID --changes FILE or --content FILE; no arguments retries the retained candidate.'}
+    result['repair']={'candidateFiles':[i['editable'] for i in result.get('candidates',[])],
+        'rules':'Geometry failure: bounds/rotation/order only, or content-preserving split. Text/table overflow: use measured required dimensions, then check geometry again. No content is silently removed.',
+        'recoveryCommand':['ansatz-slide','page','resume',str(work.parent)]}
     atomic_write(work/'record.json',api.json_bytes(record))
     atomic_write(work/'result.json',api.json_bytes(result))
     api.session_path(work.parent)
@@ -94,8 +98,8 @@ def _conflict(work,record,message):
         item=previous.get('context',{}).get(role)
         if item:item['needsReview']=True
     return attach_gates(_refresh_narrative({**previous,'status':'conflict','applied':False,'issues':[{'kind':'conflict','message':message}],
-            'next':{'command':['ansatz-slide','page','open',record['project'],'--page',str(record['page'])],
-                    'hint':'Reread current source. This work and its candidate remain available; no automatic overwrite.'}}))
+            'next':{'command':['ansatz-slide','page','rebase',str(work.parent)],
+                    'hint':'Rebase resolves the latest candidate against its source path, not the old page number. If the source was removed, explicitly supply --page. Review the rebased candidate before update; no automatic overwrite.'}}))
 
 
 def _current(work,record):
@@ -105,6 +109,7 @@ def _current(work,record):
         if manifest_paths(record['project']):raise ValueError('Project was already created')
         return None
     snap=api.snapshot(record['project'])
+    if not 1<=record['page']<=len(snap['pages']):raise ValueError('Original page index no longer exists; rebase the retained work')
     if record['baseToken']!=api.page_token(snap,record['page']):raise ValueError('Source or related assets changed after this work was opened')
     return snap
 
@@ -190,7 +195,7 @@ def _execute(work,record,snap,items):
         if kind in ('split','merge'):
             return api.reshape_pages(session,token,contents,other_session,other_token)
         return api.change_order(session,token,kind,content=contents[0] if kind=='insert' else None,
-                                position=operation.get('position','after'),anchor_session=other_session,anchor_token=other_token)
+                                position=operation.get('position','after'),allow_duplicates=operation.get('allowDuplicates',False),anchor_session=other_session,anchor_token=other_token)
     raise ValueError('Unknown work operation')
 
 
@@ -222,7 +227,7 @@ def _process(work,record,snap,*,apply,render=True):
                 project=Path(record['project'])/'pptx.yaml' if snap is None else snap['manifestPath']
                 updated=api.snapshot(project)
                 number=outcome.get('page',outcome.get('newPages',[{'page':record['page']}])[0]['page'])
-                record.update(project=str(project),page=number,baseToken=api.page_token(updated,number),
+                record.update(project=str(project),page=number,sourcePath=str(updated['paths'][number-1]),baseToken=api.page_token(updated,number),
                               operation={'kind':'edit'},candidates=[updated['pages'][number-1]],geometryFailures=[0])
                 result.update(status='applied',applied=True,project=str(project),page=number,
                               context=outline.context(updated,number),
@@ -253,7 +258,9 @@ def _process(work,record,snap,*,apply,render=True):
             if hasattr(exc,'report'):result['textFit']=[exc.report]
             if not result['applied']:
                 result['status']='conflict' if 'concurrent' in str(exc).lower() or 'changed' in str(exc).lower() or 'stale' in str(exc).lower() else 'blocked'
-            result['issues'].append({'kind':'execution','message':str(exc)})
+            diagnostic=work/'execution-error.txt'
+            diagnostic.write_text(traceback.format_exc(),encoding='utf-8')
+            result['issues'].append({'kind':'execution','message':str(exc),'diagnostic':str(diagnostic)})
             if not result['applied'] and snap is not None and 'Geometry precheck failed' in str(exc):
                 from .occupancy import analyze
                 result['blockingPages']=[]
@@ -275,17 +282,20 @@ def open_page(project,number,width=1600,*,render=True):
     if not 1<=number<=len(snap['pages']):raise ValueError('Page out of range')
     root=_root(snap['root']);work=_new(root)
     record={'format':1,'project':str(snap['manifestPath']),'page':number,'width':width,
-            'baseToken':api.page_token(snap,number),'operation':{'kind':'edit'},
+            'sourcePath':str(snap['paths'][number-1]),'baseToken':api.page_token(snap,number),'operation':{'kind':'edit'},
             'candidates':[snap['pages'][number-1]]}
     return _process(work,record,snap,apply=False,render=render)
 
 
-def update(work,content=None,element=None,changes=None,candidate=1,*,edits=None,layout=None):
+def update(work,content=None,element=None,changes=None,candidate=1,*,edits=None,layout=None,allow_duplicates=False):
     work,record=_read(work)
     with api.lock(work.parent/'.work.lock'):
         try:snap=_current(work,record)
         except Exception as exc:return _conflict(work,record,str(exc))
         record=copy.deepcopy(record)
+        if allow_duplicates:
+            if record['operation']['kind']!='insert':raise ValueError('--allow-duplicates only applies to a retained insertion')
+            record['operation']['allowDuplicates']=True
         if not 1<=candidate<=len(record['candidates']):raise ValueError('Candidate index out of range')
         if sum(value is not None for value in (content,element,edits))>1:raise ValueError('Choose full content, one element update, or edits')
         if layout is not None and (content is not None or element is not None):raise ValueError('Layout can be combined with edits, not content or element')
@@ -309,7 +319,7 @@ def update(work,content=None,element=None,changes=None,candidate=1,*,edits=None,
         return _process(_new(work.parent),record,snap,apply=True)
 
 
-def change(work,kind,contents=(),other=None,position='after'):
+def change(work,kind,contents=(),other=None,position='after',*,allow_duplicates=False):
     work,record=_read(work)
     with api.lock(work.parent/'.work.lock'):
         try:snap=_current(work,record)
@@ -321,7 +331,7 @@ def change(work,kind,contents=(),other=None,position='after'):
         record=copy.deepcopy(record)
         creating=record['operation']['kind']=='create'
         originals=record['candidates']
-        record['operation']={'kind':'create' if creating else kind,'position':position,'other':str(other) if other else None}
+        record['operation']={'kind':'create' if creating else kind,'position':position,'other':str(other) if other else None,'allowDuplicates':allow_duplicates}
         if kind in ('insert','split','merge'):
             expected=2 if kind=='split' else 1
             if len(contents)<expected or (kind!='split' and len(contents)!=1):raise ValueError('Wrong candidate count')
@@ -340,3 +350,43 @@ def create(project,settings,content,width=1600):
             'baseToken':None,'operation':{'kind':'create'},'candidates':[content]}
     work=_new(_root(root))
     return _process(work,record,None,apply=True)
+
+
+def resume(token):
+    """Resolve a stable lineage token without applying or rebasing a candidate."""
+    token=api.session_path(token)
+    root=token if (token/'head.json').is_file() else token.parent
+    work=api.session_path(json.loads((root/'head.json').read_text())['work'])
+    if work.parent!=root:raise ValueError('Invalid work head')
+    work,record=_read(work)
+    try:_current(work,record)
+    except Exception as exc:return _conflict(work,record,str(exc))
+    return json.loads((work/'result.json').read_text())
+
+
+def rebase(token,number=None):
+    """Explicitly recover candidates after source changes; never publish here."""
+    current=resume(token);work,record=_read(current['work'])
+    with api.lock(work.parent/'.work.lock'):
+        if json.loads((work.parent/'head.json').read_text())['work']!=str(work):
+            raise ValueError('Work changed during rebase; retry resume')
+        if record['operation']['kind']=='create':raise ValueError('Creation cannot be rebound onto an existing project')
+        snap=api.snapshot(record['project'])
+        if number is None:
+            matches=[i+1 for i,p in enumerate(snap['paths']) if str(p)==record.get('sourcePath')]
+            if len(matches)!=1:raise ValueError('Source anchor removed or unavailable; inspect deck outline and explicitly choose --page N')
+            number=matches[0]
+        if not 1<=number<=len(snap['pages']):raise ValueError('Rebase page out of range')
+        if record['operation']['kind'] in ('move','merge'):
+            raise ValueError('Reopen both current pages before merge/move; ambiguous second anchor is not rebound automatically')
+        record=copy.deepcopy(record)
+        previous=json.loads((work/'result.json').read_text())
+        if previous.get('applied') or (previous.get('status')=='ready' and not record.get('rebasedPending')):
+            record['candidates']=[copy.deepcopy(snap['pages'][number-1])]
+        record['rebasedPending']=not previous.get('applied') and (previous.get('status')!='ready' or record.get('rebasedPending',False))
+        record.update(page=number,sourcePath=str(snap['paths'][number-1]),baseToken=api.page_token(snap,number))
+        result=_process(_new(work.parent),record,snap,apply=False,render=False)
+        result['rebaseReviewRequired']=True
+        result['next']['hint']='Inspect current context and retained candidate before update. Rebase has not published any source changes.'
+        atomic_write(Path(result['work'])/'result.json',api.json_bytes(result),force=True)
+        return result

@@ -54,9 +54,14 @@ def main(argv=None):
     update_page.add_argument("--content",type=Path)
     update_page.add_argument("--element")
     update_page.add_argument("--changes",type=Path)
+    update_page.add_argument("--allow-duplicates",action="store_true",help="Explicitly permit a retained duplicate insertion")
     update_page.add_argument("--candidate",type=int,default=1)
     update_page.add_argument("--edits",type=Path,help="List of element/changes patches applied as one checked page revision")
     update_page.add_argument("--layout",type=Path,help="Deterministic row/column/group/weighted-segment layout of existing elements")
+    for name in ('resume','rebase'):
+        recovery=page_actions.add_parser(name,help='Recover the latest retained work without publishing')
+        recovery.add_argument('work',type=Path)
+        if name=='rebase':recovery.add_argument('--page',type=int)
     check_page = page_actions.add_parser("check", help="Expose one page, its rendered preview and bounded context")
     check_page.add_argument("--project", required=True, type=Path)
     check_page.add_argument("--page", required=True, type=int)
@@ -93,7 +98,9 @@ def main(argv=None):
         action.add_argument("--token",help="Legacy session token")
         if name != "remove":
             action.add_argument("--position", choices=("before", "after"), default="after")
-        if name == "insert":action.add_argument("--content", type=Path, required=True)
+        if name == "insert":
+            action.add_argument("--content", type=Path, required=True)
+            action.add_argument("--allow-duplicates",action="store_true")
         if name == "move":
             action.add_argument("--anchor-session", type=Path)
             action.add_argument("--anchor",type=Path,help="Anchor page work reference")
@@ -104,6 +111,16 @@ def main(argv=None):
     text_check.add_argument("--output",required=True,type=Path)
     deck = commands.add_parser("deck", help="Read the outline or publish a checked draft manifest")
     deck_actions = deck.add_subparsers(dest="deck_action", required=True)
+    batch=deck_actions.add_parser('import-pages',help='Create/insert an ordered batch with idempotency and retained candidates')
+    batch.add_argument('project',type=Path)
+    batch.add_argument('--plan',type=Path,required=True)
+    batch.add_argument('--request-id',required=True)
+    batch.add_argument('--settings',type=Path)
+    batch.add_argument('--after',type=int)
+    batch.add_argument('--allow-duplicates',action='store_true')
+    batch.add_argument('--width',type=int,default=1600)
+    resume_deck=deck_actions.add_parser('resume',help='Resume a retained batch; applied requests never insert twice')
+    resume_deck.add_argument('token',type=Path)
     check_deck = deck_actions.add_parser("check")
     check_deck.add_argument("--project", required=True, type=Path)
     create_deck = deck_actions.add_parser("create", help="Precheck every draft page before creating the formal pptx.yaml manifest")
@@ -141,7 +158,10 @@ def main(argv=None):
     try:
         if args.command == "page":
             from .page_api import check_page, edit_page, reshape_pages, change_order, check_overlap
-            if args.page_action in ("open","update"):
+            if args.page_action in ('resume','rebase'):
+                from . import work_objects as work
+                result=work.resume(args.work) if args.page_action=='resume' else work.rebase(args.work,args.page)
+            elif args.page_action in ("open","update"):
                 from . import work_objects as work
                 from .project import parse_document
                 if args.page_action=="open":
@@ -152,14 +172,14 @@ def main(argv=None):
                     if bool(args.element)!=bool(args.changes):raise ValueError("Use --element with --changes")
                     edits=parse_document(args.edits.read_text(),str(args.edits)) if args.edits else None
                     layout=parse_document(args.layout.read_text(),str(args.layout)) if args.layout else None
-                    result=work.update(args.work,args.content,args.element,changes,args.candidate,edits=edits,layout=layout)
+                    result=work.update(args.work,args.content,args.element,changes,args.candidate,edits=edits,layout=layout,allow_duplicates=args.allow_duplicates)
             elif args.page_action in ("insert","split","merge","move","remove") and args.token is None:
                 from .work_objects import change
                 contents=getattr(args,"content",None)
                 if contents is not None and not isinstance(contents,list):contents=[contents]
                 result=change(args.session,args.page_action,contents or (),
                               other=getattr(args,"next",None) or getattr(args,"anchor",None),
-                              position=getattr(args,"position","after"))
+                              position=getattr(args,"position","after"),allow_duplicates=getattr(args,'allow_duplicates',False))
             elif args.page_action == "check":
                 result = check_page(args.project, args.page, args.session, args.width)
             elif args.page_action == "check-text":
@@ -180,9 +200,16 @@ def main(argv=None):
             else:
                 result = change_order(args.session, args.token, args.page_action,
                     content=getattr(args, "content", None), position=getattr(args, "position", "after"),
-                    anchor_session=getattr(args, "anchor_session", None), anchor_token=getattr(args, "anchor_token", None))
+                    anchor_session=getattr(args, "anchor_session", None), anchor_token=getattr(args, "anchor_token", None),allow_duplicates=getattr(args,"allow_duplicates",False))
         elif args.command == "deck":
-            if args.deck_action=='revise':
+            if args.deck_action in ('import-pages','resume'):
+                from . import batch_pages
+                from .project import parse_document
+                if args.deck_action=='resume':result=batch_pages.resume(args.token)
+                else:
+                    settings=parse_document(args.settings.read_text(),str(args.settings)) if args.settings else None
+                    result=batch_pages.import_pages(args.project,args.plan,args.request_id,settings=settings,after=args.after,allow_duplicates=args.allow_duplicates,width=args.width)
+            elif args.deck_action=='revise':
                 from .revision import revise
                 result=revise(args.project,args.plan,args.output,force=args.force,width=args.width)
             elif args.deck_action=='create':
@@ -266,9 +293,9 @@ def main(argv=None):
         if result.get('status') in ('blocked','conflict','error'):return 1
         return 0
     except Exception as exc:
-        work_command=(args.command=='page' and (getattr(args,'page_action',None) in ('open','update') or
+        work_command=(args.command=='page' and (getattr(args,'page_action',None) in ('open','update','resume','rebase') or
                       (getattr(args,'page_action',None) in ('insert','split','merge','move','remove') and args.token is None)))
-        work_command=work_command or (args.command=='deck' and (getattr(args,'deck_action',None) in ('outline','export','brief','directive','revise') or
+        work_command=work_command or (args.command=='deck' and (getattr(args,'deck_action',None) in ('outline','export','brief','directive','revise','import-pages','resume') or
                                                               (getattr(args,'deck_action',None)=='create' and args.project is not None)))
         if work_command:
             from .gates import attach

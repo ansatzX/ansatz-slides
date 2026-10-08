@@ -24,6 +24,11 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def page_fingerprint(page):
+    """Structural page identity independent of JSON/YAML mapping key order."""
+    return sha(json.dumps(page,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode('utf-8'))
+
+
 def json_bytes(value):
     return json.dumps(value, ensure_ascii=False, indent=2).encode('utf-8')
 
@@ -419,7 +424,7 @@ def publish_order(snap, manifest, new_sources=None, assets=None):
 
 
 def change_order(session, token, operation, *, content=None, position='after',
-                 anchor_session=None, anchor_token=None):
+                 anchor_session=None, anchor_token=None, allow_duplicates=False):
     """Insert next to a checked page, move relative to a checked anchor, or remove."""
     if operation not in ('insert', 'move', 'remove'):
         raise ValueError('Unknown page order operation')
@@ -441,6 +446,8 @@ def change_order(session, token, operation, *, content=None, position='after',
             if operation == 'insert':
                 if content is None: raise ValueError('Insert requires one page content file')
                 candidate = parse_document(Path(content).read_text(encoding='utf-8'), str(content))
+                if not allow_duplicates and any(page_fingerprint(candidate)==page_fingerprint(p) for p in snap['pages']):
+                    raise ValueError('Duplicate page content detected; insertion was not published. Use --allow-duplicates only for intentional repetition.')
                 for image in image_objects(candidate):
                     if not re.match(r'(?i)^(data:|https?://)', image['src']):
                         asset = safe_path(snap['root'], image['src'], 'image')

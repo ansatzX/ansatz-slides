@@ -236,7 +236,7 @@ class PageAPITests(unittest.TestCase):
 
     def test_insert_before_first_and_after_last_preserves_all_existing_sources(self):
         r=page_api.check_page(self.project,1,self.session);before=self.originals()
-        result=page_api.change_order(self.session,r['token'],'insert',content=r['editablePage'],position='before')
+        result=page_api.change_order(self.session,r['token'],'insert',content=r['editablePage'],position='before',allow_duplicates=True)
         order=parse_document(self.manifest.read_text(), "test source")['pages']
         self.assertEqual(1,result['page']);self.assertEqual(4,result['pageCount'])
         self.assertEqual(['1.page.yaml','2.page.yaml','3.page.yaml'],order[1:])
@@ -244,7 +244,7 @@ class PageAPITests(unittest.TestCase):
         for name,data in before.items():
             if name!='pptx.yaml':self.assertEqual(data,(self.project/name).read_bytes())
         end=page_api.check_page(self.project,4,self.root/'end')
-        appended=page_api.change_order(self.root/'end',end['token'],'insert',content=end['editablePage'])
+        appended=page_api.change_order(self.root/'end',end['token'],'insert',content=end['editablePage'],allow_duplicates=True)
         self.assertEqual(5,appended['page'])
         self.assertEqual(order,parse_document(self.manifest.read_text(), "test source")['pages'][:-1])
 
@@ -285,11 +285,11 @@ class PageAPITests(unittest.TestCase):
         r=page_api.check_page(self.project,2,self.session);before=self.originals()
         with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('render failed')):
             with self.assertRaisesRegex(RuntimeError,'render failed'):
-                page_api.change_order(self.session,r['token'],'insert',content=r['editablePage'])
+                page_api.change_order(self.session,r['token'],'insert',content=r['editablePage'],allow_duplicates=True)
         self.assertEqual(before,self.originals())
         with patch('ansatz_slide.page_api.preserving_replace',side_effect=OSError('manifest failed')):
             with self.assertRaisesRegex(OSError,'manifest failed'):
-                page_api.change_order(self.session,r['token'],'insert',content=r['editablePage'])
+                page_api.change_order(self.session,r['token'],'insert',content=r['editablePage'],allow_duplicates=True)
         for name,data in before.items():self.assertEqual(data,(self.project/name).read_bytes())
 
     def test_session_output_links_rejected_without_project_writes(self):

@@ -45,6 +45,26 @@ text. This is an authoring rule, not permission to rewrite unrelated supplied te
 
 Read only what the task needs. For a new academic talk, understand the argument before layout; a reading note is not automatically a slide outline. A local typography correction does not authorize reauthoring the talk.
 
+## New decks and batch insertion
+
+For several new pages, write an ordered JSON/YAML list of page paths and use
+`ansatz-slide deck import-pages PROJECT --settings settings.yaml --plan pages.json
+--request-id initial-v1`. Existing decks omit settings and may use `--after N`
+(default append; zero inserts at the start). All candidates are checked before
+one manifest publication; do not build a long chain of single-page insert calls.
+Keep the returned `resumeToken`; repair retained candidates and use `deck resume
+TOKEN` after failure. Replaying an applied request returns its receipt without
+inserting again. A new payload needs a new request-id; duplicate page content is
+rejected unless intentional repetition is explicitly allowed. Single-page
+`page insert` also rejects duplicate content; use `--allow-duplicates` only when
+repetition is intended, including on `page update` of a retained insertion. See
+[the work-object CLI](reference/review-cli.md) for limits and recovery evidence.
+
+Page work also returns a stable `resumeToken`: `page resume TOKEN` resolves its
+latest revision without writing. After source changes use `page rebase TOKEN`,
+review the current context and retained candidate, then update. A deleted source
+anchor requires explicit `--page N`; never infer a new target from an old index.
+
 ## Efficient revision loop
 
 For an existing deck, read only the requested pages and relevant instructions.

@@ -24,6 +24,15 @@ class TypographyTests(unittest.TestCase):
     def measure(self,elements,theme=None):
         return check_page([960,540],{'elements':elements},theme or {},self.root/str(len(list(self.root.iterdir()))))
 
+    def test_real_lists_preserve_text_and_still_measure_overflow(self):
+        ul='<ul><li>First item</li><li>Second <strong>item</strong></li></ul>'
+        ol='<ol><li>First item</li><li>Second item</li></ol>'
+        elements=[self.element('ul',ul,height=180),self.element('ol',ol,height=180),
+                  self.element('crowded',ul,height=15)]
+        a,b,c=self.measure(elements)['elements']
+        self.assertEqual(a['status'],'passed',a);self.assertEqual(b['status'],'passed',b)
+        self.assertEqual(c['status'],'overflow',c)
+
     def test_same_box_different_text_and_font_size_change_actual_occupancy(self):
         short=self.element('short','Short text')
         long=self.element('long','This paragraph cannot fit inside a single small frame. '*10)
@@ -107,3 +116,13 @@ class TypographyTests(unittest.TestCase):
         self.assertEqual('passed',a['status'],a)
         self.assertEqual('bottom',a['alignmentMeasured'])
         self.assertNotEqual('passed',b['status'])
+
+
+class ListTextMatchingTests(unittest.TestCase):
+    def test_only_structural_leaders_are_exempted(self):
+        from ansatz_slide.richtext import RichTextParser
+        from ansatz_slide.typography import matches_rendered_text
+        parser=RichTextParser();parser.feed('<ul><li>Keep • literal</li><li>123. keep digits</li></ul>');parser.close()
+        self.assertTrue(matches_rendered_text(parser.paragraphs,'• Keep • literal • 123. keep digits'))
+        for wrong in ['• Keep literal • 123. keep digits','• Keep • literal • keep digits','• Keep • literal','Keep • literal • 123. keep digits']:
+            self.assertFalse(matches_rendered_text(parser.paragraphs,wrong),wrong)

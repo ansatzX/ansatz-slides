@@ -5,7 +5,7 @@ from .styles import fill_xml, line_xml
 from .xml import emu, tag
 
 
-def cell_style(element, row, column, theme):
+def cell_style(element, row, column, theme, cell=None):
     reference = element.get("style", {})
     style = (
         theme.get("tableStyles", {}).get(reference.lstrip("$"), {})
@@ -27,7 +27,8 @@ def cell_style(element, row, column, theme):
         col_keys + row_keys if style.get("rowOverColumn", True) else row_keys + col_keys
     ):
         result.update(style.get(key, {}))
-    cell = element["rows"][row][column]
+    if cell is None:
+        cell = element["rows"][row][column]
     if isinstance(cell, str):
         cell = {"text": cell}
     if cell.get("textStyle"):
@@ -48,39 +49,53 @@ def table_xml(element, theme):
             for fraction in element["columnWidths"]
         ),
     )
-    merges = {}
+    # Source rows omit covered cells. Expand once into physical-grid ownership.
+    owners = {}
+    origins = {}
+    for ri, source_row in enumerate(element["rows"]):
+        col = 0
+        for cell in source_row:
+            while (ri, col) in owners:
+                col += 1
+            origins[ri, col] = cell
+            for dy in range(cell.get("rowSpan", 1)):
+                for dx in range(cell.get("colSpan", 1)):
+                    owners[ri + dy, col + dx] = (ri, col)
+            col += cell.get("colSpan", 1)
     for row_index, row in enumerate(element["rows"]):
         cells = []
         for column in range(len(element["columnWidths"])):
-            style = cell_style(element, row_index, column, theme)
+            origin_row, origin_col = owners[row_index, column]
+            covered = (origin_row, origin_col) != (row_index, column)
+            style = cell_style(element, origin_row, origin_col, theme,
+                               origins[origin_row, origin_col])
             attrs = {}
-            if (row_index, column) in merges:
-                origin_row, origin_col = merges[row_index, column]
-                if row_index != origin_row:
-                    attrs["vMerge"] = 1
-                if column != origin_col:
-                    attrs["hMerge"] = 1
-            else:
-                rows, cols = style.get("rowSpan", 1), style.get("colSpan", 1)
-                if rows > 1:
-                    attrs["rowSpan"] = rows
-                if cols > 1:
-                    attrs["gridSpan"] = cols
-                for dy in range(rows):
-                    for dx in range(cols):
-                        if dx or dy:
-                            merges[row_index + dy, column + dx] = row_index, column
+            rows, cols = style.get("rowSpan", 1), style.get("colSpan", 1)
+            if row_index == origin_row and rows > 1:
+                attrs["rowSpan"] = rows
+            if column == origin_col and cols > 1:
+                attrs["gridSpan"] = cols
+            if row_index != origin_row:
+                attrs["vMerge"] = 1
+            if column != origin_col:
+                attrs["hMerge"] = 1
             alignment = style.get("align", ["center", "middle"])
             anchor = {"top": "t", "middle": "ctr", "bottom": "b"}[alignment[1]]
             content = tag(
                 "a:bodyPr", {"wrap": "square", "rtlCol": 0, "anchor": anchor}
             ) + tag("a:lstStyle")
             content += paragraphs_xml(
-                style.get("text", ""), style, theme, cell=True, align=alignment
+                "" if covered else style.get("text", ""), style, theme, cell=True, align=alignment
             )
+            border = style.get("border")
+            if isinstance(border, list):
+                top, right, bottom, left = border if len(border) == 4 else border * 2
+                borders = [left, right, top, bottom]
+            else:
+                borders = [border] * 4
             properties = "".join(
-                line_xml(style.get("border"), theme, name)
-                for name in ["a:lnL", "a:lnR", "a:lnT", "a:lnB"]
+                line_xml(edge, theme, name)
+                for edge, name in zip(borders, ["a:lnL", "a:lnR", "a:lnT", "a:lnB"])
             )
             properties += fill_xml(style.get("fill"), theme)
             content = tag("a:txBody", children=content) + tag(
@@ -90,7 +105,7 @@ def table_xml(element, theme):
                     "marR": 91440,
                     "marT": 45720,
                     "marB": 45720,
-                    "anchor": None if (row_index, column) in merges else anchor,
+                    "anchor": None if covered else anchor,
                 },
                 properties,
             )
