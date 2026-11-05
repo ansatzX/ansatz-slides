@@ -3,6 +3,10 @@
 Preserves the bundled writer's supported grammar: groups, fractions, scripts,
 symbols and font commands. Unknown commands remain literal text, as in the
 original writer; this is deliberately not a claim of full TeX support.
+
+序列化器会将支持的 token 写入 Office Math 树；语法被接受不保证各消费程序中
+的显示效果。未知命令当前按字面输出；调用方仍须核实支持范围，不能据此宣称
+数学排版正确。
 """
 
 import re

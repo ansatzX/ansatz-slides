@@ -54,14 +54,14 @@ class BatchPublication(unittest.TestCase):
         import json
         candidate=self.root/'input-1.page.yaml';value=json.loads(candidate.read_text())
         value['elements'][0]['bounds']=[950,0,300,50];candidate.write_text(json.dumps(value))
-        with patch('ansatz_slide.page_api.render_pptx') as render:
+        with patch('ansatz_slide.page_api.checks.render_pptx') as render:
             result=batch_pages.import_pages(self.project,plan,'geometry',settings=self.settings)
         self.assertFalse(result['applied']);self.assertEqual(result['checkingCandidate'],2)
         self.assertFalse((self.project/'pptx.yaml').exists());render.assert_not_called()
 
     def test_eight_pages_share_one_render_and_one_measurement_batch(self):
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=feedback.batch_render) as render, \
-             patch('ansatz_slide.page_api.measure_pages',return_value=[{'page':i,'status':'passed','elements':[]} for i in range(1,9)]) as measure:
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=feedback.batch_render) as render, \
+             patch('ansatz_slide.page_api.checks.measure_pages',return_value=[{'page':i,'status':'passed','elements':[]} for i in range(1,9)]) as measure:
             result=batch_pages.import_pages(self.project,self.plan([f'page {i}' for i in range(8)]),'batch-count',settings=self.settings)
         self.assertTrue(result['applied'],result)
         self.assertEqual(8,len(result['pages']))
@@ -69,7 +69,7 @@ class BatchPublication(unittest.TestCase):
         self.assertEqual(1,measure.call_count)
 
     def test_missing_batch_image_rejects_all_pages_and_can_resume(self):
-        with patch('ansatz_slide.page_api.render_pptx',return_value={'name':'broken renderer'}):
+        with patch('ansatz_slide.page_api.checks.render_pptx',return_value={'name':'broken renderer'}):
             result=batch_pages.import_pages(self.project,self.plan(['one','two']),'images',settings=self.settings)
         self.assertFalse(result['applied']);self.assertFalse((self.project/'pptx.yaml').exists())
         self.assertTrue(batch_pages.resume(result['resumeToken'])['applied'])

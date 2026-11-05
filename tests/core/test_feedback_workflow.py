@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 from ansatz_slide import batch_pages as batch, work_objects as work, page_api as api
 from .test_page_api import fake_render, png
-from ansatz_slide.inspection import inspect_pptx
+from ansatz_slide.package import inspect_pptx
 
 def batch_render(source, folder, width):
     for number in range(1, inspect_pptx(source)["pageCount"] + 1):
@@ -27,7 +27,7 @@ class FeedbackWorkflow(unittest.TestCase):
         self.root=Path(self.temp.name);self.project=self.root/'deck';self.project.mkdir()
         self.settings={'version':'v2','size':[960,540]}
         for name,side in [('measure_text',{'status':'passed','elements':[]}),('render_pptx',batch_render), ('measure_pages',lambda size,pages,theme,folder: [{'status':'passed','elements':[],'page':i} for i,_ in enumerate(pages,1)])]:
-            mock=patch('ansatz_slide.page_api.'+name,**({'return_value':side} if isinstance(side,dict) else {'side_effect':side}))
+            mock=patch('ansatz_slide.page_api.checks.'+name,**({'return_value':side} if isinstance(side,dict) else {'side_effect':side}))
             mock.start();self.addCleanup(mock.stop)
     def plan(self,texts):
         names=[]
@@ -60,11 +60,11 @@ class FeedbackWorkflow(unittest.TestCase):
         recovered=batch.resume(result['resumeToken'])
         self.assertTrue(recovered['recovered']);self.assertEqual(len(api.snapshot(self.project)['pages']),2)
     def test_failed_render_and_source_change_do_not_publish(self):
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('fail render')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('fail render')):
             blocked=batch.import_pages(self.project,self.plan(['one','two']),'failure',settings=self.settings)
         self.assertFalse(blocked['applied']);self.assertFalse((self.project/'pptx.yaml').exists())
         self.assertTrue(batch.resume(blocked['resumeToken'])['applied'])
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('fail render')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('fail render')):
             blocked=batch.import_pages(self.project,self.plan(['three']),'source')
         manifest=self.project/'pptx.yaml';manifest.write_text(manifest.read_text()+'\n')
         before=api.snapshot(self.project)['tracked']
@@ -73,7 +73,7 @@ class FeedbackWorkflow(unittest.TestCase):
         batch.import_pages(self.project,self.plan(['one','two']),'init',settings=self.settings)
         opened=work.open_page(self.project,2,render=False)
         content=self.root/'insert.json';content.write_text(json.dumps(page('pending')))
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('fail render')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('fail render')):
             pending=work.change(opened['work'],'insert',[content])
         self.assertFalse(pending['applied'])
         self.assertEqual(work.resume(opened['resumeToken'])['work'],pending['work'])
@@ -89,7 +89,7 @@ class FeedbackWorkflow(unittest.TestCase):
         batch.import_pages(self.project,self.plan(['one','two']),'init',settings=self.settings)
         opened=work.open_page(self.project,2,render=False)
         content=self.root/'edit.json';content.write_text(json.dumps(page('retained')))
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('fail render')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('fail render')):
             pending=work.update(opened['work'],content)
         manifest=self.project/'pptx.yaml';data=yaml.safe_load(manifest.read_text());data['pages'].reverse();manifest.write_text(json.dumps(data))
         result=work.rebase(pending['resumeToken']);self.assertEqual(result['page'],1)
@@ -110,7 +110,7 @@ class FeedbackWorkflow(unittest.TestCase):
 
     def test_table_measurement_with_real_consumer(self):
         import shutil
-        from ansatz_slide.table_measurement import check_tables
+        from ansatz_slide.rendering import check_tables
         if not shutil.which('soffice') or not shutil.which('pdftoppm'):
             self.skipTest('LibreOffice/Poppler not installed')
         table={'elementId':'dense','elementType':'table','bounds':[10,10,400,50],
@@ -132,7 +132,7 @@ class FeedbackWorkflow(unittest.TestCase):
         # A different mapping serialization still denotes the same page.
         candidate.write_text(json.dumps(page('two'),sort_keys=True))
         before=api.snapshot(self.project)['tracked']
-        with patch('ansatz_slide.page_api.preview',side_effect=AssertionError('duplicate must not render')):
+        with patch('ansatz_slide.page_api.operations.preview',side_effect=AssertionError('duplicate must not render')):
             blocked=work.change(opened['work'],'insert',[candidate])
         self.assertFalse(blocked['applied']);self.assertIn('Duplicate page',str(blocked['issues']))
         self.assertTrue(api.unchanged(before))

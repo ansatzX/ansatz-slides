@@ -67,8 +67,9 @@ def table_xml(element, theme):
         for column in range(len(element["columnWidths"])):
             origin_row, origin_col = owners[row_index, column]
             covered = (origin_row, origin_col) != (row_index, column)
-            style = cell_style(element, origin_row, origin_col, theme,
-                               origins[origin_row, origin_col])
+            style = cell_style(
+                element, origin_row, origin_col, theme, origins[origin_row, origin_col]
+            )
             attrs = {}
             rows, cols = style.get("rowSpan", 1), style.get("colSpan", 1)
             if row_index == origin_row and rows > 1:
@@ -85,7 +86,11 @@ def table_xml(element, theme):
                 "a:bodyPr", {"wrap": "square", "rtlCol": 0, "anchor": anchor}
             ) + tag("a:lstStyle")
             content += paragraphs_xml(
-                "" if covered else style.get("text", ""), style, theme, cell=True, align=alignment
+                "" if covered else style.get("text", ""),
+                style,
+                theme,
+                cell=True,
+                align=alignment,
             )
             border = style.get("border")
             if isinstance(border, list):

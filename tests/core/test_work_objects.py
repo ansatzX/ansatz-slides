@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from ansatz_slide import work_objects as work
-from ansatz_slide.outline import outline
+from ansatz_slide.narrative import outline
 from ansatz_slide.cli import main
 from .test_page_api import fake_render
 
@@ -40,7 +40,7 @@ def decode(matrix,kind):
 
 class WorkObjectTests(unittest.TestCase):
     def setUp(self):
-        text_mock=patch('ansatz_slide.page_api.measure_text',return_value={'status':'passed','elements':[],'engine':'stub for transaction/geometry tests'})
+        text_mock=patch('ansatz_slide.page_api.checks.measure_text',return_value={'status':'passed','elements':[],'engine':'stub for transaction/geometry tests'})
         text_mock.start();self.addCleanup(text_mock.stop)
         base=Path(__file__).resolve().parents[2]/'tmp/test-tmp';base.mkdir(parents=True,exist_ok=True)
         temp=tempfile.TemporaryDirectory(dir=base);self.addCleanup(temp.cleanup)
@@ -48,7 +48,7 @@ class WorkObjectTests(unittest.TestCase):
         self.settings={'version':'v2','size':[20,20]}
         self.write('pptx.yaml',{**self.settings,'pages':['1.page.yaml','2.page.yaml']})
         self.write('1.page.yaml',page());self.write('2.page.yaml',page(text='PRIVATE_OTHER_BODY'))
-        fake=patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render);fake.start();self.addCleanup(fake.stop)
+        fake=patch('ansatz_slide.page_api.checks.render_pptx',side_effect=fake_render);fake.start();self.addCleanup(fake.stop)
 
     def write(self,name,value):
         path=self.project/name;path.write_text(json.dumps(value));return path
@@ -56,19 +56,19 @@ class WorkObjectTests(unittest.TestCase):
     def sources(self):return {p.name:p.read_bytes() for p in self.project.glob('*.yaml')}
 
     def test_read_only_open_defers_render_but_update_still_checks(self):
-        with patch('ansatz_slide.page_api.measure_text') as measure, patch('ansatz_slide.page_api.render_pptx') as render:
+        with patch('ansatz_slide.page_api.checks.measure_text') as measure, patch('ansatz_slide.page_api.checks.render_pptx') as render:
             opened=work.open_page(self.project,1,render=False)
             measure.assert_not_called();render.assert_not_called()
         self.assertEqual('unverified',opened['textFit'][0]['status'])
         before=self.sources()
-        with patch('ansatz_slide.page_api.measure_text',return_value={'status':'blocked','elements':[{'elementId':'body','status':'overflow','reason':'test overflow'}]}):
+        with patch('ansatz_slide.page_api.checks.measure_text',return_value={'status':'blocked','elements':[{'elementId':'body','status':'overflow','reason':'test overflow'}]}):
             failed=work.update(opened['work'],element='body',changes={'content':{'text':'Changed'}})
         self.assertFalse(failed['applied']);self.assertEqual(before,self.sources())
         self.assertEqual('blocked',failed['textFit'][0]['status'])
 
     def test_multi_patch_checks_once_and_keeps_other_pages(self):
         opened=work.open_page(self.project,1,render=False);before=self.sources()
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render) as render:
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=fake_render) as render:
             result=work.update(opened['work'],edits=[
                 {'element':'title','changes':{'content':{'text':'New title'}}},
                 {'element':'body','changes':{'content':{'text':'New body'}}}])
@@ -146,7 +146,7 @@ class WorkObjectTests(unittest.TestCase):
 
     def test_render_failure_retains_candidate_then_retry_applies(self):
         r=work.open_page(self.project,1);before=self.sources()
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('Office unavailable')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('Office unavailable')):
             bad=work.update(r['work'],element='body',changes={'content':{'text':'New text'}})
         self.assertEqual('blocked',bad['status']);self.assertEqual(before,self.sources())
         self.assertEqual('passed',bad['candidates'][0]['geometry']['status'])

@@ -4,11 +4,14 @@
 
 `ansatz-slide` 是 Python 演示文稿工具，负责结构化源文件校验、PPTX 导出、结构检查和指定页面替换。Python 3.11+；依赖及构建配置以 `pyproject.toml`、`uv.lock` 为准。
 
-- `src/ansatz_slide/`：唯一核心实现，包含 OOXML 模板。
+每个维护中的 Python 文件不得超过 500 行（含注释和空行）。代码修改后使用 Ruff 格式化，按格式化后的实际行数检查；按职责拆分或合并，不通过压行、删除必要注释规避限制。
+
+- `src/ansatz_slide/`：唯一核心实现；`templates/presentation/` 保存通用 OOXML 模板，`templates/notes/` 保存按需加载的备注模板。
+- `validation/`、`incremental/`、`page_api/`、`work_objects/`：分别维护 DSL 校验、二进制单页移植、页面 API 与候选工作对象；包入口保留调用接口，子模块按职责划分。
 - `skills/ansatz-slide/`：Agent 指令、风格定义和独立 Skill 启动脚本。
 - `tests/`：功能、安装、文档示例与输出回归测试。
 - `scripts/verify_distribution.py`：wheel/sdist 内容检查。
-- `README.md`：安装、命令和项目说明；`theme.md`：唯一学术风格入口。
+- `README.md`：安装、命令和项目说明；唯一学术风格直接见 `skills/ansatz-slide/reference/style.md`。
 - `docs/README.md`：文档导航及开发验证；`docs/DSL_SUPPORT_MATRIX.md`：能力边界。
 
 ## 工作范围
@@ -52,6 +55,7 @@ mkdir -p tmp/test-tmp tmp/uv-cache
 export TMPDIR="$PWD/tmp/test-tmp"
 export UV_CACHE_DIR="$PWD/tmp/uv-cache"
 uv run --frozen python -m unittest discover -v
+ruff format --check src/ansatz_slide scripts skills/ansatz-slide/scripts
 git diff --check
 ```
 

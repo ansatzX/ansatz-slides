@@ -1,9 +1,9 @@
 """Image resources and crop mathematics, independent of a browser or WASM."""
 
 import base64
-import struct
 import math
 import re
+import struct
 from xml.etree import ElementTree as ET
 
 from .xml import round_half_away, tag
@@ -64,13 +64,26 @@ def image_info(data):
                 raise ValueError("SVG viewBox must contain four finite numbers")
             width, height = values[2:]
         else:
-            units = {"": 1, "px": 1, "in": 96, "cm": 96/2.54,
-                     "mm": 96/25.4, "pt": 96/72, "pc": 16, "Q": 96/101.6}
+            units = {
+                "": 1,
+                "px": 1,
+                "in": 96,
+                "cm": 96 / 2.54,
+                "mm": 96 / 25.4,
+                "pt": 96 / 72,
+                "pc": 16,
+                "Q": 96 / 101.6,
+            }
             sizes = []
             for key in ("width", "height"):
-                match = re.fullmatch(r"\s*([+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(px|in|cm|mm|pt|pc|Q)?\s*", root.get(key, ""))
+                match = re.fullmatch(
+                    r"\s*([+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*(px|in|cm|mm|pt|pc|Q)?\s*",
+                    root.get(key, ""),
+                )
                 if not match:
-                    raise ValueError("SVG without viewBox needs absolute width and height")
+                    raise ValueError(
+                        "SVG without viewBox needs absolute width and height"
+                    )
                 sizes.append(float(match[1]) * units[match[2] or ""])
             width, height = sizes
         if not all(math.isfinite(v) and v > 0 for v in (width, height)):

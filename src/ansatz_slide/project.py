@@ -2,6 +2,10 @@
 
 JSON syntax is accepted without third-party packages. YAML uses PyYAML's
 pure-Python SafeLoader, with YAML 1.2-style booleans and duplicate-key errors.
+
+本模块连接源文档与导出器：载入时先检查完整项目，导出时依次进行几何与
+源稿预检、可选的文本测量、字节生成、包结构检查，最后才发布。raw export
+默认不执行文本测量；这里的检查不能证明最终视觉效果正确。
 """
 
 import base64
@@ -19,6 +23,11 @@ from .validation import ValidationError, array, obj, safe_path, validate_project
 
 
 def parse_document(text, label):
+    """解析为下游使用的受限源稿值树。
+
+    先尝试 JSON，使未安装 PyYAML 的环境也能读取 JSON 格式清单；YAML
+    分支会收窄其宽松类型规则，只接受项目模型能表示的值。
+    """
     try:
         # JSON is a YAML subset, and avoids a YAML dependency entirely.
         def unique(pairs):
@@ -137,8 +146,12 @@ def find_manifest(source):
     if source.is_file() and is_manifest_path(source):
         return source
     if not source.is_dir():
-        raise ValidationError(f"Expected pptx.yaml manifest or project directory: {source}")
-    matches = sorted(path for path in source.iterdir() if path.is_file() and is_manifest_path(path))
+        raise ValidationError(
+            f"Expected pptx.yaml manifest or project directory: {source}"
+        )
+    matches = sorted(
+        path for path in source.iterdir() if path.is_file() and is_manifest_path(path)
+    )
     if len(matches) != 1:
         raise ValidationError(
             f"Expected exactly one pptx.yaml manifest in {source}, found {len(matches)}; pass a manifest explicitly"
@@ -147,6 +160,7 @@ def find_manifest(source):
 
 
 def load_project(source, *, check_files=True):
+    """载入唯一项目清单及其已校验的页面源文件。"""
     manifest_path = find_manifest(source)
     return _load_manifest(manifest_path, check_files=check_files)
 
@@ -181,23 +195,32 @@ def _load_manifest(manifest_path, *, check_files=True):
 def image_objects(value, seen=None, *, with_paths=False):
     """Walk every image resource, including backgrounds, fills and theme styles."""
     seen = set() if seen is None else seen
+
     def walk(item, path):
         if isinstance(item, (dict, list)):
             if id(item) in seen:
                 return
             seen.add(id(item))
         if isinstance(item, dict):
-            if item.get('src') and (item.get('elementType') == 'image' or item.get('type') == 'image'):
+            if item.get("src") and (
+                item.get("elementType") == "image" or item.get("type") == "image"
+            ):
                 yield (item, path) if with_paths else item
             for key, child in item.items():
                 yield from walk(child, path + (key,))
         elif isinstance(item, list):
             for index, child in enumerate(item):
                 yield from walk(child, path + (index,))
+
     yield from walk(value, ())
 
 
 def resolve_images(pptd, root, *, allow_remote=True, timeout=30):
+    """每个素材只读取一次，并将源 URI 映射为包内键。
+
+    是否读取远程素材由调用方的离线策略控制；本地路径经 ``safe_path``
+    检查，确保素材仍位于项目根目录内。
+    """
     images, remap = {}, {}
     for value in image_objects(pptd):
         src = value["src"]
@@ -243,16 +266,21 @@ def resolve_images(pptd, root, *, allow_remote=True, timeout=30):
     return images
 
 
-SOURCE_HEADER = '# 此文件已存在时，请通过 ansatz-slide CLI 修改，不要直接编辑；请编辑候选文件后由 CLI 校验并写回。\n'
+SOURCE_HEADER = "# 此文件已存在时，请通过 ansatz-slide CLI 修改，不要直接编辑；请编辑候选文件后由 CLI 校验并写回。\n"
 
 
 def source_bytes(data):
     """Add an idempotent workflow reminder to formal YAML, not candidate/state files."""
-    header = SOURCE_HEADER.encode('utf-8')
+    header = SOURCE_HEADER.encode("utf-8")
     return data if data.startswith(header) else header + data
 
 
 def atomic_write(destination, data, force=False):
+    """先在目标旁暂存字节，再默认以不覆盖方式发布。
+
+    不带 force 时用硬链接发布，避免在检查文件存在与实际发布之间发生
+    竞争覆盖；``force`` 则会有意替换现有文件。
+    """
     destination = Path(destination).expanduser().resolve()
     if destination.exists() and not force:
         raise FileExistsError(f"Output exists; use --force: {destination}")
@@ -277,64 +305,118 @@ def atomic_write(destination, data, force=False):
 
 def create_project(draft, output):
     """Publish a new formal manifest only after all referenced pages pass."""
-    draft=Path(draft).expanduser().resolve()
-    output=Path(output).expanduser().absolute()
+    draft = Path(draft).expanduser().resolve()
+    output = Path(output).expanduser().absolute()
     if output.is_symlink() or output.exists():
-        raise FileExistsError('Formal manifest output must be new')
-    output=output.resolve()
-    if not is_manifest_path(output) or output.parent!=draft.parent:
-        raise ValidationError('Output must be pptx.yaml or *.pptx.yaml beside the draft and page sources')
-    raw=draft.read_bytes()
-    manifest=parse_document(raw.decode('utf-8'),str(draft))
-    obj(manifest,'manifest',{'version','title','customFonts','size','theme','pages'}, {'version','size','pages'})
-    array(manifest['pages'],'manifest.pages',minimum=1)
-    tracked={draft:raw}
-    for name in manifest['pages']:
-        path=safe_path(draft.parent,name,'manifest.pages')
-        tracked[path]=path.read_bytes()
-    pptd,root=_load_manifest(draft)
+        raise FileExistsError("Formal manifest output must be new")
+    output = output.resolve()
+    if not is_manifest_path(output) or output.parent != draft.parent:
+        raise ValidationError(
+            "Output must be pptx.yaml or *.pptx.yaml beside the draft and page sources"
+        )
+    raw = draft.read_bytes()
+    manifest = parse_document(raw.decode("utf-8"), str(draft))
+    obj(
+        manifest,
+        "manifest",
+        {"version", "title", "customFonts", "size", "theme", "pages"},
+        {"version", "size", "pages"},
+    )
+    array(manifest["pages"], "manifest.pages", minimum=1)
+    tracked = {draft: raw}
+    for name in manifest["pages"]:
+        path = safe_path(draft.parent, name, "manifest.pages")
+        tracked[path] = path.read_bytes()
+    pptd, root = _load_manifest(draft)
     if output in tracked:
-        raise ValidationError('Formal manifest must not overwrite draft or page sources')
+        raise ValidationError(
+            "Formal manifest must not overwrite draft or page sources"
+        )
     from .occupancy import require_pages
-    reports=require_pages(pptd['size'],pptd['pages'])
-    if any(path.read_bytes()!=data for path,data in tracked.items()):
-        raise RuntimeError('Draft or page source changed during precheck; retry')
-    from .page_api import lock, sha
+
+    reports = require_pages(pptd["size"], pptd["pages"])
+    if any(path.read_bytes() != data for path, data in tracked.items()):
+        raise RuntimeError("Draft or page source changed during precheck; retry")
     from .file_transactions import retract_created
-    with lock(output.parent/'.ansatz-page-edit.lock'):
+    from .page_api import lock, sha
+
+    with lock(output.parent / ".ansatz-page-edit.lock"):
         if manifest_paths(output.parent):
-            raise ValueError('Project already has a manifest')
-        if any(path.read_bytes()!=data for path,data in tracked.items()):
-            raise RuntimeError('Draft or page source changed before publication; retry')
-        data=source_bytes(raw)
-        atomic_write(output,data)
+            raise ValueError("Project already has a manifest")
+        if any(path.read_bytes() != data for path, data in tracked.items()):
+            raise RuntimeError("Draft or page source changed before publication; retry")
+        data = source_bytes(raw)
+        atomic_write(output, data)
         try:
-            if manifest_paths(output.parent)!=[output] or any(path.read_bytes()!=value for path,value in tracked.items()):
-                raise RuntimeError('Project changed during publication; retry')
+            if manifest_paths(output.parent) != [output] or any(
+                path.read_bytes() != value for path, value in tracked.items()
+            ):
+                raise RuntimeError("Project changed during publication; retry")
         except Exception:
-            retract_created(output,sha(data))
+            retract_created(output, sha(data))
             raise
-    return {'output':str(output),'pageCount':len(reports),'geometryStatus':'passed',
-            'pages':[{'page':i+1,'status':r['status'],'approvedOverlaps':r['approvedOverlaps']} for i,r in enumerate(reports)],
-            'effect':'Created formal manifest after fresh geometry checks; export rechecks current sources.'}
+    return {
+        "output": str(output),
+        "pageCount": len(reports),
+        "geometryStatus": "passed",
+        "pages": [
+            {
+                "page": i + 1,
+                "status": r["status"],
+                "approvedOverlaps": r["approvedOverlaps"],
+            }
+            for i, r in enumerate(reports)
+        ],
+        "effect": "Created formal manifest after fresh geometry checks; export rechecks current sources.",
+    }
 
 
 def export_project(
-    source, output, *, transition="fade", force=False, allow_remote=True, measure_text=False, backend="native"
+    source,
+    output,
+    *,
+    transition="fade",
+    force=False,
+    allow_remote=True,
+    measure_text=False,
+    backend="native",
 ):
+    """校验源稿、准备素材、导出并检查后再发布。
+
+    几何检查和源稿预检都先于输出写入。可选的文本适配测量是独立证据门；
+    包检查验证结构，不验证渲染后的视觉质量。
+    """
     if backend not in {"native", "deckcraft"}:
         raise ValidationError("Backend must be native or deckcraft")
     if transition not in {"fade", "none"}:
         raise ValidationError("Transition must be fade or none")
     pptd, root = load_project(source)
     from .occupancy import require_pages
-    require_pages(pptd['size'], pptd['pages'])
-    from .preflight import analyze, require_pass as require_sources, summary as source_summary
-    source_preflight = analyze(pptd['size'], pptd['pages'], root,
-                               academic=measure_text, allow_remote=allow_remote, include_geometry=False, theme=pptd.get('theme'))
+
+    require_pages(pptd["size"], pptd["pages"])
+    from .preflight import (
+        analyze,
+    )
+    from .preflight import (
+        require_pass as require_sources,
+    )
+    from .preflight import (
+        summary as source_summary,
+    )
+
+    source_preflight = analyze(
+        pptd["size"],
+        pptd["pages"],
+        root,
+        academic=measure_text,
+        allow_remote=allow_remote,
+        include_geometry=False,
+        theme=pptd.get("theme"),
+    )
     require_sources(source_preflight)
-    if backend == 'deckcraft':
+    if backend == "deckcraft":
         from .deckcraft import check_source
+
         check_source(pptd, transition)
     output = Path(output).expanduser().resolve()
     protected = {find_manifest(source)} | {
@@ -349,16 +431,18 @@ def export_project(
         raise FileExistsError(f"Output exists; use --force: {output}")
     images = None
     prepared = None
-    if backend == 'deckcraft':
+    if backend == "deckcraft":
         # Compile every field and image format before any Office work. The
         # compiler only constructs commands/paths; it does not create files.
         from .deckcraft import commands_for
+
         prepared = copy.deepcopy(pptd)
         images = resolve_images(prepared, root, allow_remote=allow_remote)
         commands_for(prepared, images, output.parent, transition)
     text_fit = None
     if measure_text:
         from .typography import check_loaded
+
         text_fit = check_loaded(pptd, root)
     if prepared is not None:
         pptd = prepared
@@ -366,18 +450,28 @@ def export_project(
         images = resolve_images(pptd, root, allow_remote=allow_remote)
     if backend == "deckcraft":
         from .deckcraft import export_bytes
+
         output.parent.mkdir(parents=True, exist_ok=True)
         data = export_bytes(pptd, images, output.parent, transition)
     else:
         data = export_pptx(
             pptd,
-            {"images": images, "slideTransition": {"effect": transition, "speed": "fast"}},
+            {
+                "images": images,
+                "slideTransition": {"effect": transition, "speed": "fast"},
+            },
         )
-    from .inspection import inspect_pptx
+    from .package import inspect_pptx
 
     report = inspect_pptx(data)
     if report["pageCount"] != len(pptd["pages"]):
         raise ValidationError("Exported page count does not match source")
     atomic_write(output, data, force)
-    return {"backend": backend, "output": str(output), "pageCount": len(pptd["pages"]), "structure": report,
-            "sourcePreflight": source_summary(source_preflight), **({"textFit":text_fit} if measure_text else {})}
+    return {
+        "backend": backend,
+        "output": str(output),
+        "pageCount": len(pptd["pages"]),
+        "structure": report,
+        "sourcePreflight": source_summary(source_preflight),
+        **({"textFit": text_fit} if measure_text else {}),
+    }

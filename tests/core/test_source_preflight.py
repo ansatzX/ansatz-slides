@@ -88,9 +88,20 @@ class SourcePreflightTests(unittest.TestCase):
         self.assertEqual(['S1'],warning['tokens'])
         self.assertEqual('warning',warning['severity'])
         self.assertIn('LaTeX',warning['message'])
-        self.assertIn('retained TeX',warning['message'])
+        self.assertIn('native editable Office Math',warning['message'])
         self.assertIn('HTML sub/sup alone is not formal math',warning['message'])
         self.assertEqual(0,report['errors'])
+
+    def test_native_math_is_recognized_without_requiring_a_formula_image(self):
+        page=self.fixed()
+        page['elements']=[e for e in page['elements'] if e['elementId']!='eq']
+        page['elements'][2]['content']['text']=r'本页公式为 \(\sigma_{\mathrm{opt}} = \frac{a}{b}\)，使用 \(S_1\)。'
+        self.candidates(page)
+        report=self.run_check()
+        self.assertEqual('passed',report['status'],report['issues'])
+        self.assertEqual([],report['pages'][0]['formulas'])
+        self.assertEqual([r'\sigma_{\mathrm{opt}} = \frac{a}{b}',r'S_1'],
+                         [m['expression'] for m in report['pages'][0]['nativeMath']])
 
     def test_typeset_math_assets_with_sources_clear_the_advisories(self):
         self.candidates(self.fixed())

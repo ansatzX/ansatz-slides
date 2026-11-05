@@ -5,7 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from ansatz_slide import narrative, outline, work_objects as work
+from ansatz_slide import narrative, work_objects as work
+from ansatz_slide import narrative as outline
 from ansatz_slide.cli import main
 from .test_page_api import fake_render
 
@@ -19,7 +20,7 @@ class NarrativeTests(unittest.TestCase):
         for n in self.order:self.write(n,{'elements':[{'elementId':'title','elementType':'text','bounds':[20,20,600,60],'content':{'text':n,'fontSize':24}}]})
         self.brief={'purpose':'Explain the evidence','audience':'Researchers','centralClaim':'Claim is conditional',
             'sections':[{'id':n[0],'claim':'Role '+n[0],'sources':[n]} for n in self.order]}
-        for target,value in [('ansatz_slide.page_api.render_pptx',fake_render),('ansatz_slide.page_api.measure_text',None)]:
+        for target,value in [('ansatz_slide.page_api.checks.render_pptx',fake_render),('ansatz_slide.page_api.checks.measure_text',None)]:
             mock=patch(target,side_effect=value) if value else patch(target,return_value={'status':'passed','elements':[]})
             mock.start();self.addCleanup(mock.stop)
 

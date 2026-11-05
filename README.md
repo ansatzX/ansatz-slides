@@ -86,7 +86,7 @@ ansatz-slide deck revise ./deck --plan /absolute/returned/plan.yaml -o ./next.pp
 | 学术报告 | [学术汇报基本方法](skills/ansatz-slide/reference/content.md) |
 | 论文阅读（全文必读） | [用户完整阅读方法 read.md](skills/ansatz-slide/reference/content/read.md) |
 | 字段和数据类型 | [源文件规范](skills/ansatz-slide/reference/technical.md) |
-| 唯一学术风格与内容分工 | [排版规范入口](theme.md) |
+| 唯一学术风格 | [排版规范](skills/ansatz-slide/reference/style.md) |
 | Agent 使用规则 | [Skill](skills/ansatz-slide/SKILL.md) |
 
 `src/ansatz_slide/` 是唯一实现；`skills/ansatz-slide/` 是随安装分发的指令与风格；`tests/` 保存回归；`tmp/` 保存本地构建、缓存和检查结果。代码采用 [MIT License](LICENSE)，保留原作者及第三方资源归属。

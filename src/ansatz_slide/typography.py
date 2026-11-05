@@ -2,18 +2,22 @@
 
 Probe slides retain text width, runs, fonts and paragraph rules but remove the
 height constraint. PDF word extents expose occupied space before clipping.
+
+测量引擎为 LibreOffice 与 Poppler。结果只描述这条探测路径；表格/原生公式、
+图表、字形外观及目标演示软件中的呈现仍可能未验证。
 """
+
 import copy
 import json
 import re
-from pathlib import Path
 import shutil
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 from .package import Package
-from .slides import SlideWriter
-from .rendering import run_command
+from .rendering import check_pages, run_command
 from .richtext import RichTextParser
+from .slides import SlideWriter
 
 
 def matches_rendered_text(paragraphs, extracted):
@@ -23,267 +27,461 @@ def matches_rendered_text(paragraphs, extracted):
     runs remain required. Number leaders are consumer-generated arabicPeriod
     markers; this check verifies text preservation, not numbering semantics.
     """
-    normalize=lambda value: ''.join(value.split()).replace('\u00ad','')
-    remaining=normalize(extracted)
+    normalize = lambda value: "".join(value.split()).replace("\u00ad", "")
+    remaining = normalize(extracted)
     for para in paragraphs:
-        marker=para.style.get('bullet')
+        marker = para.style.get("bullet")
         if marker:
-            match=re.match(r'[0-9]+\.' if marker=='number' else '•',remaining)
-            if not match:return False
-            remaining=remaining[match.end():]
-        text=normalize(''.join(run.value for run in para.runs))
-        if not remaining.startswith(text):return False
-        remaining=remaining[len(text):]
+            match = re.match(r"[0-9]+\." if marker == "number" else "•", remaining)
+            if not match:
+                return False
+            remaining = remaining[match.end() :]
+        text = normalize("".join(run.value for run in para.runs))
+        if not remaining.startswith(text):
+            return False
+        remaining = remaining[len(text) :]
     return not remaining
 
 
 class TextFitError(ValueError):
     def __init__(self, report):
         self.report = report
-        details = '; '.join(f"{e['elementId']}: {e.get('reason', e['status'])}" for e in report['elements'] if e['status'] != 'passed')
-        super().__init__('Text fit check failed: '+details)
+        details = "; ".join(
+            f"{e['elementId']}: {e.get('reason', e['status'])}"
+            for e in report["elements"]
+            if e["status"] != "passed"
+        )
+        super().__init__("Text fit check failed: " + details)
 
 
 def check_page(size, page, theme, folder):
-    """Return measured text bounds; never silently equate box size with text size."""
-    folder=Path(folder);folder.mkdir(parents=True,exist_ok=True)
-    report={'status':'passed','engine':'LibreOffice + Poppler pdftotext',
-            'units':'pt (same as source coordinates)','elements':[],
-            'unmeasuredObjects':[e.get('elementId') for e in page.get('elements',[]) if e.get('elementType') in ('chart',)],
-            'visualAcceptance':{'status':'unverified','reason':'Measured bounds do not verify glyph appearance, native equations, or table/chart text.'},
-            'scope':'Native text and isolated table silhouettes measured in LibreOffice. Chart labels and target PowerPoint/WPS remain unverified.'}
-    entries=[]
+    """返回测得的文本范围；不把文本框尺寸静默当作文本占用尺寸。
+
+    探测形状保留源稿宽度和格式，但允许高度增长，以便从提取范围发现溢出。
+    LibreOffice 无法可靠测量的特殊内容会在报告中标记为未验证。
+    """
+    folder = Path(folder)
+    folder.mkdir(parents=True, exist_ok=True)
+    report = {
+        "status": "passed",
+        "engine": "LibreOffice + Poppler pdftotext",
+        "units": "pt (same as source coordinates)",
+        "elements": [],
+        "unmeasuredObjects": [
+            e.get("elementId")
+            for e in page.get("elements", [])
+            if e.get("elementType") in ("chart",)
+        ],
+        "visualAcceptance": {
+            "status": "unverified",
+            "reason": "Measured bounds do not verify glyph appearance, native equations, or table/chart text.",
+        },
+        "scope": "Native text and isolated table silhouettes measured in LibreOffice. Chart labels and target PowerPoint/WPS remain unverified.",
+    }
+    entries = []
     # LibreOffice does not reliably render Office Math in DrawingML tables or
     # AlternateContent. Do not certify literal fallback / omitted equations.
-    for element in page.get('elements',[]):
-        if element.get('elementType')=='table':
-            if any('\\(' in cell.get('text','') for row in element.get('rows',[]) for cell in row):
-                report['elements'].append({'elementId':element['elementId'],'status':'unverified',
-                    'reason':'Native table equations cannot be verified by LibreOffice. Use typeset equation images or move formulas outside the table; inspect in the target consumer.'})
-    for element in page.get('elements',[]):
-        if element.get('elementType')!='text':continue
-        content=element.get('content',{})
-        parser=RichTextParser();parser.feed(str(content.get('text','')));parser.close()
-        text=''.join(run.value for para in parser.paragraphs for run in para.runs)
-        if not text.strip():continue
-        item={'elementId':element['elementId'],'bounds':element['bounds'],
-              'sourceText':text,'status':'unverified','requestedStyles':[], 'wrap':content.get('wrap',True)}
-        base={'fontFamily':'MiSans','fontSize':16,'lineHeight':1.2,'bold':False,'italic':False,
-              **(theme or {}).get('textStyles',{}).get((content.get('style') or '').lstrip('$'),{}),**content}
+    for element in page.get("elements", []):
+        if element.get("elementType") == "table":
+            if any(
+                "\\(" in cell.get("text", "")
+                for row in element.get("rows", [])
+                for cell in row
+            ):
+                report["elements"].append(
+                    {
+                        "elementId": element["elementId"],
+                        "status": "unverified",
+                        "reason": "Native table equations cannot be verified by LibreOffice. Preserve native editable math and inspect a raw-export candidate in a capable target consumer; do not substitute equation images without user authorization.",
+                    }
+                )
+    for element in page.get("elements", []):
+        if element.get("elementType") != "text":
+            continue
+        content = element.get("content", {})
+        parser = RichTextParser()
+        parser.feed(str(content.get("text", "")))
+        parser.close()
+        text = "".join(run.value for para in parser.paragraphs for run in para.runs)
+        if not text.strip():
+            continue
+        item = {
+            "elementId": element["elementId"],
+            "bounds": element["bounds"],
+            "sourceText": text,
+            "status": "unverified",
+            "requestedStyles": [],
+            "wrap": content.get("wrap", True),
+        }
+        base = {
+            "fontFamily": "MiSans",
+            "fontSize": 16,
+            "lineHeight": 1.2,
+            "bold": False,
+            "italic": False,
+            **(theme or {})
+            .get("textStyles", {})
+            .get((content.get("style") or "").lstrip("$"), {}),
+            **content,
+        }
         for para in parser.paragraphs:
             for run in para.runs:
-                style={**base,**para.style,**run.style}
-                item['requestedStyles'].append({k:style.get(k) for k in
-                    ('fontFamily','fontSize','bold','italic','lineHeight','lineHeightPx','letterSpacing','marginTop')})
-        report['elements'].append(item)
-        if '\\(' in text:
-            item['reason']='Native Office Math cannot be verified by LibreOffice. Use the LaTeX-to-PNG route for this publication workflow; raw export retains editable Office Math for target-consumer review.'
-        elif content.get('textDirection')=='vertical':
-            item['reason']='Vertical text requires a dedicated measurement layout; not treated as fitting'
-        else:entries.append((element,item))
-    from .table_measurement import check_tables
-    tables=[e for e in page.get('elements',[]) if e.get('elementType')=='table' and not any('\\(' in c.get('text','') for row in e.get('rows',[]) for c in row)]
-    report['elements'].extend(check_tables(tables,theme,folder/'tables'))
+                style = {**base, **para.style, **run.style}
+                item["requestedStyles"].append(
+                    {
+                        k: style.get(k)
+                        for k in (
+                            "fontFamily",
+                            "fontSize",
+                            "bold",
+                            "italic",
+                            "lineHeight",
+                            "lineHeightPx",
+                            "letterSpacing",
+                            "marginTop",
+                        )
+                    }
+                )
+        report["elements"].append(item)
+        if "\\(" in text:
+            item["reason"] = (
+                "Native Office Math cannot be verified by LibreOffice. Preserve native editable math; raw export can produce a candidate for review in a capable target consumer. Do not substitute equation images without user authorization."
+            )
+        elif content.get("textDirection") == "vertical":
+            item["reason"] = (
+                "Vertical text requires a dedicated measurement layout; not treated as fitting"
+            )
+        else:
+            entries.append((element, item))
+    from .rendering import check_tables
+
+    tables = [
+        e
+        for e in page.get("elements", [])
+        if e.get("elementType") == "table"
+        and not any(
+            "\\(" in c.get("text", "") for row in e.get("rows", []) for c in row
+        )
+    ]
+    report["elements"].extend(check_tables(tables, theme, folder / "tables"))
     if not entries:
-        report['status']='blocked' if any(e['status']!='passed' for e in report['elements']) else 'passed'
-        (folder/'text-fit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+        report["status"] = (
+            "blocked"
+            if any(e["status"] != "passed" for e in report["elements"])
+            else "passed"
+        )
+        (folder / "text-fit.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2)
+        )
         return report
-    office=shutil.which('soffice') or shutil.which('libreoffice')
-    extractor=shutil.which('pdftotext');fonts=shutil.which('pdffonts')
+    office = shutil.which("soffice") or shutil.which("libreoffice")
+    extractor = shutil.which("pdftotext")
+    fonts = shutil.which("pdffonts")
     if not office or not extractor or not fonts:
-        raise RuntimeError('Text measurement requires LibreOffice and Poppler (pdftotext, pdffonts)')
-    margin=72.0
+        raise RuntimeError(
+            "Text measurement requires LibreOffice and Poppler (pdftotext, pdffonts)"
+        )
+    margin = 72.0
     # Extra horizontal space reveals unwrapped overflow. Extra vertical space
     # reveals lines that the original frame would clip. Guard probe limits.
-    probe_width=max(2000.0,max(e['bounds'][2] for e,_ in entries)+2*margin)
-    probe_height=max(4000.0,max(e['bounds'][3] for e,_ in entries)+2*margin)
-    if max(probe_width,probe_height)>10000:
-        raise RuntimeError('Text measurement probe exceeds supported size; split the page before measuring')
-    package=Package()
-    aligned_probes={}
-    for number,(element,item) in enumerate(entries,1):
-        candidate=copy.deepcopy(element);candidate['bounds']=[margin,margin,element['bounds'][2],probe_height-2*margin]
-        candidate.pop('animations',None)
-        candidate.pop('rotation',None)  # Measure in the textbox's local coordinates.
-        align=candidate['content'].get('align','left')
-        candidate['content']['align']=[align[0] if isinstance(align,list) else align,'top']
+    probe_width = max(2000.0, max(e["bounds"][2] for e, _ in entries) + 2 * margin)
+    probe_height = max(4000.0, max(e["bounds"][3] for e, _ in entries) + 2 * margin)
+    if max(probe_width, probe_height) > 10000:
+        raise RuntimeError(
+            "Text measurement probe exceeds supported size; split the page before measuring"
+        )
+    package = Package()
+    aligned_probes = {}
+    for number, (element, item) in enumerate(entries, 1):
+        candidate = copy.deepcopy(element)
+        candidate["bounds"] = [
+            margin,
+            margin,
+            element["bounds"][2],
+            probe_height - 2 * margin,
+        ]
+        candidate.pop("animations", None)
+        candidate.pop("rotation", None)  # Measure in the textbox's local coordinates.
+        align = candidate["content"].get("align", "left")
+        candidate["content"]["align"] = [
+            align[0] if isinstance(align, list) else align,
+            "top",
+        ]
         # Internal probe serialization intentionally has no publication path.
-        SlideWriter(package,number,theme or {},{},[probe_width,probe_height],{'effect':'none','speed':'fast'}).write({'elements':[candidate]})
+        SlideWriter(
+            package,
+            number,
+            theme or {},
+            {},
+            [probe_width, probe_height],
+            {"effect": "none", "speed": "fast"},
+        ).write({"elements": [candidate]})
     # The tall, top-aligned probe reveals hidden lines, but its origin is not
     # the origin of centered/bottom-aligned text in the actual frame. Measure
     # those frames too, in the same Office conversion rather than guessing an
     # alignment offset from font metrics.
-    for index,(element,item) in enumerate(entries):
-        align=element['content'].get('align')
-        if isinstance(align,list) and len(align)>1 and align[1] in ('middle','bottom'):
-            number=len(entries)+len(aligned_probes)+1
-            aligned_probes[index]=number-1
-            candidate=copy.deepcopy(element)
-            candidate['bounds'][:2]=[margin,margin]
-            candidate.pop('animations',None);candidate.pop('rotation',None)
-            SlideWriter(package,number,theme or {},{},[probe_width,probe_height],{'effect':'none','speed':'fast'}).write({'elements':[candidate]})
-    source=folder/'text-probe.pptx';source.write_bytes(package.finish([probe_width,probe_height],len(entries)+len(aligned_probes)))
-    profile=(folder/'text-office-profile').resolve()
+    for index, (element, item) in enumerate(entries):
+        align = element["content"].get("align")
+        if (
+            isinstance(align, list)
+            and len(align) > 1
+            and align[1] in ("middle", "bottom")
+        ):
+            number = len(entries) + len(aligned_probes) + 1
+            aligned_probes[index] = number - 1
+            candidate = copy.deepcopy(element)
+            candidate["bounds"][:2] = [margin, margin]
+            candidate.pop("animations", None)
+            candidate.pop("rotation", None)
+            SlideWriter(
+                package,
+                number,
+                theme or {},
+                {},
+                [probe_width, probe_height],
+                {"effect": "none", "speed": "fast"},
+            ).write({"elements": [candidate]})
+    source = folder / "text-probe.pptx"
+    source.write_bytes(
+        package.finish([probe_width, probe_height], len(entries) + len(aligned_probes))
+    )
+    profile = (folder / "text-office-profile").resolve()
     try:
-        run_command([office,'-env:UserInstallation='+profile.as_uri(),'--headless','--convert-to','pdf','--outdir',str(folder.resolve()),str(source.resolve())],folder)
-        pdf=folder/'text-probe.pdf';bbox=folder/'text-bounds.html'
-        if not pdf.is_file():raise RuntimeError('Text measurement did not produce a PDF')
-        run_command([extractor,'-bbox','-enc','UTF-8',str(pdf.resolve()),str(bbox.resolve())],folder)
-        pages=ET.parse(bbox).getroot().findall('.//{*}page')
-        if len(pages)!=len(entries)+len(aligned_probes):raise RuntimeError('Text measurement page count mismatch')
+        run_command(
+            [
+                office,
+                "-env:UserInstallation=" + profile.as_uri(),
+                "--headless",
+                "--convert-to",
+                "pdf",
+                "--outdir",
+                str(folder.resolve()),
+                str(source.resolve()),
+            ],
+            folder,
+        )
+        pdf = folder / "text-probe.pdf"
+        bbox = folder / "text-bounds.html"
+        if not pdf.is_file():
+            raise RuntimeError("Text measurement did not produce a PDF")
+        run_command(
+            [
+                extractor,
+                "-bbox",
+                "-enc",
+                "UTF-8",
+                str(pdf.resolve()),
+                str(bbox.resolve()),
+            ],
+            folder,
+        )
+        pages = ET.parse(bbox).getroot().findall(".//{*}page")
+        if len(pages) != len(entries) + len(aligned_probes):
+            raise RuntimeError("Text measurement page count mismatch")
         import subprocess
-        for number,((element,item),pdfpage) in enumerate(zip(entries,pages),1):
-            result=subprocess.run([fonts,'-f',str(number),'-l',str(number),str(pdf.resolve())],capture_output=True,text=True,timeout=60)
-            if result.returncode:raise RuntimeError('Could not inspect fonts used for text measurement')
-            item['renderedFonts']=[line.split()[0] for line in result.stdout.splitlines()[2:] if line.strip()]
-            words=pdfpage.findall('.//{*}word')
+
+        for number, ((element, item), pdfpage) in enumerate(zip(entries, pages), 1):
+            result = subprocess.run(
+                [fonts, "-f", str(number), "-l", str(number), str(pdf.resolve())],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if result.returncode:
+                raise RuntimeError("Could not inspect fonts used for text measurement")
+            item["renderedFonts"] = [
+                line.split()[0]
+                for line in result.stdout.splitlines()[2:]
+                if line.strip()
+            ]
+            words = pdfpage.findall(".//{*}word")
             if not words:
-                item['reason']='Renderer produced no measurable text; glyphs or font extraction may be missing';continue
-            extracted=''.join(w.text or '' for w in words)
-            normalize=lambda value: ''.join(value.split()).replace('\u00ad','')
-            parser=RichTextParser();parser.feed(str(element.get('content',{}).get('text','')));parser.close()
-            if not matches_rendered_text(parser.paragraphs,extracted):
-                item['reason']='Rendered text extraction differs from source; check missing glyphs, font substitution, and equations'
-                item['extractedText']=extracted
+                item["reason"] = (
+                    "Renderer produced no measurable text; glyphs or font extraction may be missing"
+                )
                 continue
-            left=min(float(w.attrib['xMin']) for w in words)-margin
-            top=min(float(w.attrib['yMin']) for w in words)-margin
-            right=max(float(w.attrib['xMax']) for w in words)-margin
-            bottom=max(float(w.attrib['yMax']) for w in words)-margin
-            intrinsic_height=bottom-top
-            if number-1 in aligned_probes:
-                item['unrestrictedBounds']=[left,top,right-left,intrinsic_height]
-                actual_words=pages[aligned_probes[number-1]].findall('.//{*}word')
-                if [w.text for w in actual_words]!=[w.text for w in words]:
-                    item['reason']='Original aligned frame clipped or changed measured text; enlarge the frame';continue
-                left=min(float(w.attrib['xMin']) for w in actual_words)-margin
-                top=min(float(w.attrib['yMin']) for w in actual_words)-margin
-                right=max(float(w.attrib['xMax']) for w in actual_words)-margin
-                bottom=max(float(w.attrib['yMax']) for w in actual_words)-margin
-                item['alignmentMeasured']=element['content']['align'][1]
-            item.update(measuredBounds=[left,top,right-left,bottom-top],
-                        requiredWidth=max(0,right)-min(0,left),requiredHeight=max(0,bottom)-min(0,top),
-                        wordCount=len(words))
-            w,h=element['bounds'][2:]
-            tolerance=0.5  # PDF coordinate/font rounding in source point units.
-            if right>=probe_width-2*margin-tolerance or bottom>=probe_height-2*margin-tolerance:
-                item['reason']='Text reaches the probe limit; measurement may be clipped'
-            elif left < -tolerance or top < -tolerance or right>w+tolerance or bottom>h+tolerance or intrinsic_height>h+tolerance:
-                overflow={edge:round(amount,4) for edge,amount in
-                          [('left',-left),('top',-top),('right',right-w),('bottom',bottom-h)] if amount>tolerance}
-                if intrinsic_height>h+tolerance:overflow['height']=round(intrinsic_height-h,4)
-                detail=', '.join(f'{edge} {amount:.2f} pt' for edge,amount in overflow.items())
-                hint=('Top/left overflow is a local text-origin/line-metric issue; enlarging frame width/height alone does not fix it. Inspect font and paragraph spacing.'
-                      if 'top' in overflow or 'left' in overflow else 'Adjust wrapping, frame dimensions or typography while preserving content.')
+            extracted = "".join(w.text or "" for w in words)
+            parser = RichTextParser()
+            parser.feed(str(element.get("content", {}).get("text", "")))
+            parser.close()
+            if not matches_rendered_text(parser.paragraphs, extracted):
+                item["reason"] = (
+                    "Rendered text extraction differs from source; check missing glyphs, font substitution, and equations"
+                )
+                item["extractedText"] = extracted
+                continue
+            left = min(float(w.attrib["xMin"]) for w in words) - margin
+            top = min(float(w.attrib["yMin"]) for w in words) - margin
+            right = max(float(w.attrib["xMax"]) for w in words) - margin
+            bottom = max(float(w.attrib["yMax"]) for w in words) - margin
+            intrinsic_height = bottom - top
+            if number - 1 in aligned_probes:
+                item["unrestrictedBounds"] = [left, top, right - left, intrinsic_height]
+                actual_words = pages[aligned_probes[number - 1]].findall(".//{*}word")
+                if [w.text for w in actual_words] != [w.text for w in words]:
+                    item["reason"] = (
+                        "Original aligned frame clipped or changed measured text; enlarge the frame"
+                    )
+                    continue
+                left = min(float(w.attrib["xMin"]) for w in actual_words) - margin
+                top = min(float(w.attrib["yMin"]) for w in actual_words) - margin
+                right = max(float(w.attrib["xMax"]) for w in actual_words) - margin
+                bottom = max(float(w.attrib["yMax"]) for w in actual_words) - margin
+                item["alignmentMeasured"] = element["content"]["align"][1]
+            item.update(
+                measuredBounds=[left, top, right - left, bottom - top],
+                requiredWidth=max(0, right) - min(0, left),
+                requiredHeight=max(0, bottom) - min(0, top),
+                wordCount=len(words),
+            )
+            w, h = element["bounds"][2:]
+            tolerance = 0.5  # PDF coordinate/font rounding in source point units.
+            if (
+                right >= probe_width - 2 * margin - tolerance
+                or bottom >= probe_height - 2 * margin - tolerance
+            ):
+                item["reason"] = (
+                    "Text reaches the probe limit; measurement may be clipped"
+                )
+            elif (
+                left < -tolerance
+                or top < -tolerance
+                or right > w + tolerance
+                or bottom > h + tolerance
+                or intrinsic_height > h + tolerance
+            ):
+                overflow = {
+                    edge: round(amount, 4)
+                    for edge, amount in [
+                        ("left", -left),
+                        ("top", -top),
+                        ("right", right - w),
+                        ("bottom", bottom - h),
+                    ]
+                    if amount > tolerance
+                }
+                if intrinsic_height > h + tolerance:
+                    overflow["height"] = round(intrinsic_height - h, 4)
+                detail = ", ".join(
+                    f"{edge} {amount:.2f} pt" for edge, amount in overflow.items()
+                )
+                hint = (
+                    "Top/left overflow is a local text-origin/line-metric issue; enlarging frame width/height alone does not fix it. Inspect font and paragraph spacing."
+                    if "top" in overflow or "left" in overflow
+                    else "Adjust wrapping, frame dimensions or typography while preserving content."
+                )
                 # Word boxes include ascender/descender metrics. Verify painted
                 # ink before rejecting a small metric-only boundary excursion.
                 # Backgrounds could hide glyph bounds, so they are not eligible.
-                actual_content=element.get('content',{})
-                eligible=not actual_content.get('backgroundColor') and not actual_content.get('style') and 'background' not in str(actual_content.get('text','')).lower()
-                if eligible and max(overflow.values(),default=0)<=4 and number-1 not in aligned_probes:
-                    from .text_ink import bounds as ink_bounds
-                    ink=ink_bounds(pdf.resolve(),number,folder,item['measuredBounds'],(w,h))
+                actual_content = element.get("content", {})
+                eligible = (
+                    not actual_content.get("backgroundColor")
+                    and not actual_content.get("style")
+                    and "background" not in str(actual_content.get("text", "")).lower()
+                )
+                if (
+                    eligible
+                    and max(overflow.values(), default=0) <= 4
+                    and number - 1 not in aligned_probes
+                ):
+                    from .rendering import text_ink_bounds as ink_bounds
+
+                    ink = ink_bounds(
+                        pdf.resolve(), number, folder, item["measuredBounds"], (w, h)
+                    )
                     if ink is not None:
-                        item['inkBounds']=ink
-                        il,it,iw,ih=ink
-                        if il>=-tolerance and it>=-tolerance and il+iw<=w+tolerance and it+ih<=h+tolerance:
-                            item.update(status='passed',measurement='raster-confirmed ink; PDF font metrics extend beyond frame',
-                                        metricOverflowEdges=overflow)
+                        item["inkBounds"] = ink
+                        il, it, iw, ih = ink
+                        if (
+                            il >= -tolerance
+                            and it >= -tolerance
+                            and il + iw <= w + tolerance
+                            and it + ih <= h + tolerance
+                        ):
+                            item.update(
+                                status="passed",
+                                measurement="raster-confirmed ink; PDF font metrics extend beyond frame",
+                                metricOverflowEdges=overflow,
+                            )
                             continue
                 # A useful enlargement suggestion is explicit and never applied.
                 # Top/left excursions require inspection rather than guessed offsets.
-                if not any(edge in overflow for edge in ('top','left')):
-                    item['repair']={'element':element['elementId'],
-                        'changes':{'bounds':[element['bounds'][0],element['bounds'][1],max(w,right)+1,max(h,bottom,intrinsic_height)+1]},
-                        'automatic':False,'meaning':'Measured size suggestion; check neighboring elements and rerun geometry.'}
-                item.update(status='overflow',overflowEdges=overflow,repairHint=hint,
-                            reason=f"overflows {detail}; local bounds [{left:.2f}, {top:.2f}, {right:.2f}, {bottom:.2f}]; frame {w} × {h} pt. {hint}")
-            else:item['status']='passed'
+                if not any(edge in overflow for edge in ("top", "left")):
+                    item["repair"] = {
+                        "element": element["elementId"],
+                        "changes": {
+                            "bounds": [
+                                element["bounds"][0],
+                                element["bounds"][1],
+                                max(w, right) + 1,
+                                max(h, bottom, intrinsic_height) + 1,
+                            ]
+                        },
+                        "automatic": False,
+                        "meaning": "Measured size suggestion; check neighboring elements and rerun geometry.",
+                    }
+                item.update(
+                    status="overflow",
+                    overflowEdges=overflow,
+                    repairHint=hint,
+                    reason=f"overflows {detail}; local bounds [{left:.2f}, {top:.2f}, {right:.2f}, {bottom:.2f}]; frame {w} × {h} pt. {hint}",
+                )
+            else:
+                item["status"] = "passed"
     finally:
-        shutil.rmtree(profile,ignore_errors=True)
-    report['status']='blocked' if any(e['status']!='passed' for e in report['elements']) else 'passed'
-    (folder/'text-fit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+        shutil.rmtree(profile, ignore_errors=True)
+    report["status"] = (
+        "blocked"
+        if any(e["status"] != "passed" for e in report["elements"])
+        else "passed"
+    )
+    (folder / "text-fit.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=2)
+    )
     return report
 
 
-def check_pages(size, pages, theme, folder):
-    """Share probe conversion across pages, preserving page-local element IDs.
-
-    Chunk by probe count to bound consumer memory and conversion time. Reports
-    are always freshly measured; no persisted result bypasses a later check.
-    """
-    folder = Path(folder)
-    reports = []
-    groups = []
-    group = []
-    count = 0
-    for number, page in enumerate(pages, 1):
-        weight = sum(2 if isinstance(e.get('content', {}).get('align'), list)
-                     and e['content']['align'][-1] in ('middle', 'bottom') else 1
-                     for e in page.get('elements', []))
-        if group and count + weight > 128:
-            groups.append(group); group = []; count = 0
-        group.append((number, page)); count += weight
-    if group:
-        groups.append(group)
-    for batch_number, group in enumerate(groups, 1):
-        combined = {'elements': []}
-        identities = {}
-        for number, page in group:
-            for index, element in enumerate(page.get('elements', [])):
-                candidate = copy.deepcopy(element)
-                key = f'page-{number}-element-{index}'
-                identities[key] = (number, element.get('elementId'))
-                candidate['elementId'] = key
-                combined['elements'].append(candidate)
-        measured = check_page(size, combined, theme, folder / f'batch-{batch_number}')
-        per_page = {}
-        for number, page in group:
-            report = {k: copy.deepcopy(v) for k, v in measured.items()
-                      if k not in ('elements', 'unmeasuredObjects', 'status')}
-            report.update(page=number, status='passed', elements=[],
-                          unmeasuredObjects=[e.get('elementId') for e in page.get('elements', [])
-                                             if e.get('elementType') == 'chart'])
-            per_page[number] = report
-        for item in measured['elements']:
-            number, original_id = identities[item['elementId']]
-            item = copy.deepcopy(item); item['elementId'] = original_id
-            if item.get('repair'):item['repair']['element']=original_id
-            per_page[number]['elements'].append(item)
-            if item['status'] != 'passed':
-                per_page[number]['status'] = 'blocked'
-        for number, _ in group:
-            report = per_page[number]
-            destination = folder / str(number)
-            destination.mkdir(parents=True, exist_ok=True)
-            (destination / 'text-fit.json').write_text(json.dumps(report, ensure_ascii=False, indent=2))
-            reports.append(report)
-    return reports
-
-
 def require_pass(report):
-    if report['status']!='passed':raise TextFitError(report)
+    if report["status"] != "passed":
+        raise TextFitError(report)
     return report
 
 
 def check_project(project, number, output):
     from .page_api import snapshot, unchanged
-    snap=snapshot(project)
-    if not 1<=number<=len(snap['pages']):raise ValueError('Page out of range')
-    folder=Path(output).absolute()
-    folder.mkdir(parents=True,exist_ok=False)
-    report=check_page(snap['manifest']['size'],snap['pages'][number-1],snap['manifest'].get('theme',{}),folder)
-    if not unchanged(snap['tracked']):raise RuntimeError('Source changed during text measurement; retry')
+
+    snap = snapshot(project)
+    if not 1 <= number <= len(snap["pages"]):
+        raise ValueError("Page out of range")
+    folder = Path(output).absolute()
+    folder.mkdir(parents=True, exist_ok=False)
+    report = check_page(
+        snap["manifest"]["size"],
+        snap["pages"][number - 1],
+        snap["manifest"].get("theme", {}),
+        folder,
+    )
+    if not unchanged(snap["tracked"]):
+        raise RuntimeError("Source changed during text measurement; retry")
     return report
 
 
 def check_loaded(pptd, root):
     """Measure exactly the in-memory text which will be serialized by this export."""
-    from .page_api import session_path
     import tempfile
-    root=session_path(Path(root)/'.ansatz');root.mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix='text-check-',dir=root) as folder:
-        for report in check_pages(pptd['size'], pptd['pages'], pptd.get('theme', {}), folder):
+
+    from .page_api import session_path
+
+    root = session_path(Path(root) / ".ansatz")
+    root.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="text-check-", dir=root) as folder:
+        for report in check_pages(
+            pptd["size"], pptd["pages"], pptd.get("theme", {}), folder
+        ):
             require_pass(report)
-    return {'status':'passed','pageCount':len(pptd['pages']),'engine':'LibreOffice + Poppler',
-            'scope':'Native horizontal text and isolated table silhouettes; charts and target-consumer appearance need separate review'}
+    return {
+        "status": "passed",
+        "pageCount": len(pptd["pages"]),
+        "engine": "LibreOffice + Poppler",
+        "scope": "Native horizontal text and isolated table silhouettes; charts and target-consumer appearance need separate review",
+    }

@@ -16,7 +16,6 @@ ansatz-slide = "ansatz_slide.cli:main"
 
 [tool.hatch.build]
 exclude = [
-    "/skills/ansatz-slide/tests/**",
     "**/__pycache__/**",
     "**/*.py[cod]",
     "**/.DS_Store",
@@ -34,9 +33,13 @@ only-include = [
     "src/ansatz_slide",
     "skills/ansatz-slide",
     "tests",
+    "docs",
     "scripts/verify_distribution.py",
     "pyproject.toml",
     "uv.lock",
     "README.md",
     "LICENSE",
 ]
+
+[tool.ruff]
+extend-exclude = ["tmp", "research", ".kilo"]

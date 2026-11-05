@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from ansatz_slide import work_objects as work
 from ansatz_slide.revision import revise
-from ansatz_slide.inspection import inspect_pptx
+from ansatz_slide.package import inspect_pptx
 from .test_page_api import fake_render, png
 
 
@@ -19,9 +19,9 @@ class RevisionTests(unittest.TestCase):
         (self.project/'pptx.yaml').write_text(json.dumps({'version':'v2','size':[960,540],'pages':['1.page.yaml','2.page.yaml','3.page.yaml']}))
         for n in (1,2,3):
             (self.project/f'{n}.page.yaml').write_text(json.dumps({'elements':[{'elementId':'title','elementType':'text','bounds':[50,50,800,60],'content':{'text':f'Page {n}','fontSize':24}}]}))
-        for name,value in [('ansatz_slide.page_api.measure_text',{'status':'passed','elements':[]}),('ansatz_slide.typography.check_loaded',{'status':'passed'})]:
+        for name,value in [('ansatz_slide.page_api.checks.measure_text',{'status':'passed','elements':[]}),('ansatz_slide.typography.check_loaded',{'status':'passed'})]:
             mock=patch(name,return_value=value);mock.start();self.addCleanup(mock.stop)
-        mock=patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render);mock.start();self.addCleanup(mock.stop)
+        mock=patch('ansatz_slide.page_api.checks.render_pptx',side_effect=fake_render);mock.start();self.addCleanup(mock.stop)
         def final(source,folder,width):
             for n in range(1,inspect_pptx(source)['pageCount']+1):(folder/f'page-{n}.png').write_bytes(png())
             return {'name':'test stub'}

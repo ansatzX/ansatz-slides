@@ -67,7 +67,7 @@ class OccupancyTests(unittest.TestCase):
             (project/'p.page.yaml').write_text(json.dumps(p))
             (project/'pptx.yaml').write_text(json.dumps({'version':'v2','size':[6,5],'pages':['p.page.yaml']}))
             before={x.name:x.read_bytes() for x in project.iterdir()}
-            with patch('ansatz_slide.page_api.render_pptx',side_effect=AssertionError('must not render')):
+            with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=AssertionError('must not render')):
                 r=check_overlap(project,1,d/'standalone')
             self.assertEqual(0,r['elementCount'])
             self.assertEqual(before,{x.name:x.read_bytes() for x in project.iterdir()})

@@ -26,7 +26,7 @@ def page(overlap=False):
 
 class GeometryGateTests(unittest.TestCase):
     def setUp(self):
-        text_mock=patch('ansatz_slide.page_api.measure_text',return_value={'status':'passed','elements':[],'engine':'stub for geometry tests'})
+        text_mock=patch('ansatz_slide.page_api.checks.measure_text',return_value={'status':'passed','elements':[],'engine':'stub for geometry tests'})
         text_mock.start();self.addCleanup(text_mock.stop)
         root=Path(__file__).resolve().parents[2]/'tmp/test-tmp';root.mkdir(parents=True,exist_ok=True)
         self.temp=tempfile.TemporaryDirectory(dir=root);self.addCleanup(self.temp.cleanup)
@@ -119,17 +119,17 @@ class GeometryGateTests(unittest.TestCase):
 
     def test_blocked_page_check_returns_repair_session_without_pptx_or_office(self):
         self.write('1.page.yaml',page(True));session=self.root/'session'
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=AssertionError('must not render')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=AssertionError('must not render')):
             r=page_api.check_page(self.root/'pptx.yaml',1,session)
         self.assertEqual('blocked',r['geometry']['status']);self.assertIsNone(r['image']);self.assertIsNone(r['previewPptx'])
         self.assertFalse(list(session.rglob('*.pptx')))
         self.assertTrue(Path(r['geometry']['files']['report']).is_file())
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=fake_render):
             fixed=page_api.edit_page(session,r['token'],element_id='b',changes={'bounds':[8,1,5,5]})
         self.assertEqual('passed',fixed['geometry']['status']);self.assertTrue(Path(fixed['previewPptx']).is_file())
 
     def test_failed_edit_insert_split_merge_and_manifest_move_preserve_sources(self):
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=fake_render):
             r=page_api.check_page(self.root/'pptx.yaml',1,self.root/'s1')
             other=page_api.check_page(self.root/'pptx.yaml',2,self.root/'s2')
         bad=self.write('bad.page.yaml',page(True));before=self.sources()
@@ -138,7 +138,7 @@ class GeometryGateTests(unittest.TestCase):
             lambda:page_api.change_order(self.root/'s1',r['token'],'insert',content=bad),
             lambda:page_api.reshape_pages(self.root/'s1',r['token'],[bad,bad]),
             lambda:page_api.reshape_pages(self.root/'s1',r['token'],[bad],self.root/'s2',other['token'])]
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=AssertionError('must not render')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=AssertionError('must not render')):
             for action in actions:
                 with self.assertRaises(GeometryError):action()
                 self.assertEqual(before,self.sources())

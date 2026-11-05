@@ -29,7 +29,7 @@ class InstallationTests(unittest.TestCase):
         project = self.root / 'project'
         project.mkdir()
         (project / 'pptx.yaml').write_text(json.dumps({'version': 'v2', 'size': [960, 540], 'pages': ['01.page.yaml']}))
-        (project / '01.page.yaml').write_text(json.dumps({'pageType': 'content', 'elements': []}))
+        (project / '01.page.yaml').write_text(json.dumps({'pageType': 'content', 'elements': [], 'notes': 'Installed notes template check.'}))
         command = [sys.executable, '-S', str(destination / 'scripts/ansatz_slide.py')]
         env = {**os.environ, 'PATH': '/nonexistent', 'PYTHONPATH': '', 'PYTHONNOUSERSITE': '1'}
         output = self.root / 'result.pptx'
@@ -37,6 +37,10 @@ class InstallationTests(unittest.TestCase):
             result = subprocess.run(command + args, cwd=self.root, env=env, capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIsInstance(json.loads(result.stdout), dict)
+        from zipfile import ZipFile
+        with ZipFile(output) as archive:
+            self.assertIn('ppt/notesMasters/notesMaster1.xml',archive.namelist())
+            self.assertIn(b'Installed notes template check.',archive.read('ppt/notesSlides/notesSlide1.xml'))
 
     def test_existing_skill_requires_force_and_failed_staging_preserves_it(self):
         destination = Path(install_skill(self.root)['destination'])

@@ -1,11 +1,15 @@
-"""HTML-like pptx.yaml rich text → explicit paragraphs and DrawingML runs."""
+"""HTML-like pptx.yaml rich text → explicit paragraphs and DrawingML runs.
+
+此解析器实现项目支持的富文本子集，不是浏览器排版引擎，不能据此推断未支持
+的 HTML 语义。导出路径启用原生公式时，公式标记会交给独立的 Office Math 序列化器。
+"""
 
 import re
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 
 from .styles import color_xml, fill_xml, shadow_xml
-from .xml import round_half_away, tag, text, emu
+from .xml import emu, round_half_away, tag, text
 
 
 @dataclass
@@ -51,7 +55,13 @@ def css_style(value):
             val = val == "bold" or (val.isdigit() and int(val) >= 600)
         elif key == "italic":
             val = val in ("italic", "oblique")
-        elif key in ["fontSize", "letterSpacing", "marginTop", "marginLeft", "marginRight"]:
+        elif key in [
+            "fontSize",
+            "letterSpacing",
+            "marginTop",
+            "marginLeft",
+            "marginRight",
+        ]:
             try:
                 val = float(val.removesuffix("px").removesuffix("pt"))
             except ValueError:
@@ -136,7 +146,11 @@ class RichTextParser(HTMLParser):
         if not value or (self.current is None and not value.strip()):
             return
         self.ensure_paragraph()
-        if self.current.runs and self.current.runs[-1].kind == "text" and self.current.runs[-1].style == self.stack[-1]:
+        if (
+            self.current.runs
+            and self.current.runs[-1].kind == "text"
+            and self.current.runs[-1].style == self.stack[-1]
+        ):
             self.current.runs[-1].value += value
         else:
             self.current.runs.append(Run(value, dict(self.stack[-1])))
@@ -171,7 +185,9 @@ def run_properties(style, theme=None):
     )
     content += shadow_xml(style.get("shadow"), theme)
     if style.get("inlineHighlight"):
-        content += tag("a:highlight", children=color_xml(style["inlineHighlight"], theme))
+        content += tag(
+            "a:highlight", children=color_xml(style["inlineHighlight"], theme)
+        )
     content += tag(
         "a:latin", {"typeface": fonts.get("latin", "Times New Roman")}
     ) + tag(
@@ -196,7 +212,8 @@ def paragraphs_xml(
             style.pop("lineHeightPx", None)
         properties = {}
         for key, attr in (("marginLeft", "marL"), ("marginRight", "marR")):
-            if key in style:properties[attr] = emu(style[key])
+            if key in style:
+                properties[attr] = emu(style[key])
         alignment = style.get("align", align)
         if isinstance(alignment, list):
             alignment = alignment[0]

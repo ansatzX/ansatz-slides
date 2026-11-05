@@ -23,7 +23,7 @@ from ansatz_slide.incremental import (
     IncrementalReplaceError,
     replace_from_project,
 )
-from ansatz_slide.inspection import inspect_pptx
+from ansatz_slide.package import inspect_pptx
 from ansatz_slide.project import (
     export_project,
     load_project,

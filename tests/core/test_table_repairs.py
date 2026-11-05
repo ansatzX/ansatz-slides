@@ -70,12 +70,12 @@ class TableRepairs(unittest.TestCase):
         import tempfile
         base=Path(__file__).resolve().parents[2]/'tmp/test-tmp';base.mkdir(parents=True,exist_ok=True)
         candidate={'elements':[{'elementId':'body','elementType':'text','bounds':[10,10,100,30],'content':{'text':'Keep me'}}]}
-        with tempfile.TemporaryDirectory(dir=base) as folder,patch('ansatz_slide.page_api.measure_text',return_value={'status':'passed','elements':[]}):
-            with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('render probe failed')):
+        with tempfile.TemporaryDirectory(dir=base) as folder,patch('ansatz_slide.page_api.checks.measure_text',return_value={'status':'passed','elements':[]}):
+            with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('render probe failed')):
                 failed=work.create(Path(folder)/'deck',{'version':'v2','size':[960,540]},candidate)
             self.assertFalse(failed['applied'])
             diagnostic=Path(failed['issues'][-1]['diagnostic'])
             self.assertIn('render probe failed',diagnostic.read_text())
-            with patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render):
+            with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=fake_render):
                 repaired=work.update(failed['work'])
             self.assertTrue(repaired['applied'],repaired['issues'])

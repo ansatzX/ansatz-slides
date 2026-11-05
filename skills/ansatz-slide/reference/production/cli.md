@@ -34,7 +34,7 @@ python scripts/ansatz_slide.py deck preflight ./deck --offline
 ```
 
 此命令不写清单、页面或缓存，不导出 PPTX、不启动 Office、不联网或生成占用矩阵。
-输出逐页标题、可识别短引文、公式素材及其相邻 `.source.tex`／`.math.txt`／`.tex`，
+输出逐页标题、可识别短引文、原生数学表达式，以及已有公式图片的相邻 `.source.tex`／`.math.txt`／`.tex`，
 以及带 `page`、`element` 和 `code` 的问题，Agent 可直接检查整稿源信息。
 
 - 确定错误：字段非法、素材缺失或为空、越界、未声明重叠等；返回非零，先修正。
@@ -218,6 +218,41 @@ ansatz-slide page check-text --project ./deck --page 2 --output ./work/text-2
 
 横排原生文字与输出富文本在范围内；竖排和原生 Office Math 未验证并阻止此流程。表格另测软件渲染轮廓及扩张，图表标签不测，图片内文字不属于原生文字。所有对象仍须视觉检查，探针触及上限时标未验证。单词范围不证明字形和可读性。validate、旧 export 和底层 Python writer 保留各自字段／几何检查契约，文字门槛使用 deck export。
 
+### 页面 Agent 的候选交回检查
+
+页面负责人在交回前运行本页检查并修复，主 Agent 的整稿检查是复核。并行制作时，
+每页使用自己的候选目录；本页测量不需要更新共享正式项目，也不需要渲染整稿。
+
+尚未导入的页面，在其专属目录建立单页检查清单，例如 `check.pptx.yaml`。采用正式
+项目相同的 `size`、`theme` 和 `customFonts`（如有），`pages` 只引用本页候选文件：
+
+```yaml
+version: v2
+size: [960, 540]
+pages: [candidate.page.yaml]
+```
+
+这个例子没有主题；实际项目有主题时须一并带入，不能用不同外观测量。把本页引用
+的本地素材复制到候选目录内，保持相同相对路径，包含主题引用的素材；不要改共享
+原件，也不要以指向项目外的符号链接绕过素材边界。新素材同样以交回版本参与检查。
+已导入的页面可使用自己的工作副本和受检页面操作，但不能由多个负责人写同一正式项目。
+
+```bash
+ansatz-slide deck preflight ./page-task/check.pptx.yaml --offline
+ansatz-slide page check-text --project ./page-task/check.pptx.yaml --page 1 --output ./page-task/checks/text-v1
+```
+
+先处理字段、素材和几何问题，再测文字。`deck preflight` 不测文字；YAML 解析、
+画布内边界及无重叠均不能代替第二条命令。该单页检查项目中的页码固定为1，
+回传时注明它对应整稿哪一页。检查清单属于专属工作目录，不合入正式页序。
+
+修订后采用新输出目录重跑受影响检查，并回传命令、当前候选和素材、预检报告、
+`text-fit.json` 路径及结果。已发现的可测文字溢出应在本页修复；工具缺失或运行
+失败时回报受阻。原生公式及混排文本返回 `unverified` 时保留未验证状态，核对
+报告中其余普通文字；不能把整个非零退出码解释为“只有公式问题”而忽略同时存在的
+溢出。只有这些未验内容尚待处理时，可交回明确标注范围的候选，不宣称整页通过。
+公式保留与目标软件检查要求见[公式附录](equations.md)。
+
 ## 局部分页
 
 ```bash
@@ -399,7 +434,7 @@ ansatz-slide deck revise ./deck --plan ./revision.json -o ./next.pptx
 
 文字测量同时检查提取文字与源内容一致性及占用边界。不一致阻止发布，应检查字体、字形和内容。visualAcceptance 仍为未验证；图表标签不自动测量，表格轮廓也不证明内部排版和字形，须看实际页面。macOS 上要检查 LibreOffice 实际字体配置，系统安装并不保证渲染器能看到。
 
-LibreOffice 不能可靠渲染文字／表格里的原生 Office Math，受检 page/deck 流程阻止此类候选并要求 LaTeX→PNG；原始 export 保留可编辑数学对象供目标软件检查，不代表视觉已通过。
+LibreOffice 不能可靠渲染文字／表格里的原生 Office Math，受检 page/deck 流程仍阻止此类候选；按[公式说明](equations.md)用原始 export 制作原生数学候选并在可用目标软件中检查，不能为绕过测量而转成图片。
 
 PDF 渲染还核对每个表格单元格文字能否被提取；缺失或变更阻止发布并保留 table-text-N.txt。它能发现已知合并单元格导入丢字，但不证明容纳或字形。曾在 LibreOffice 26.8 对独立 python-pptx 文件也复现行列混合合并问题。保持原生合并 XML，不通过默默取消合并或删内容让该软件通过。
 

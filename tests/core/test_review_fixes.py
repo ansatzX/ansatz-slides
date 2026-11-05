@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from ansatz_slide import page_api as api, work_objects as work
-from ansatz_slide.outline import outline
+from ansatz_slide.narrative import outline
 from ansatz_slide.project import create_project, find_manifest, parse_document
 from .test_page_api import fake_render, png
 from .test_work_objects import page
@@ -20,13 +20,13 @@ REPO = Path(__file__).resolve().parents[2]
 
 class ReviewFixTests(unittest.TestCase):
     def setUp(self):
-        text_mock=patch('ansatz_slide.page_api.measure_text',return_value={'status':'passed','elements':[],'engine':'stub for transaction/geometry tests'})
+        text_mock=patch('ansatz_slide.page_api.checks.measure_text',return_value={'status':'passed','elements':[],'engine':'stub for transaction/geometry tests'})
         text_mock.start();self.addCleanup(text_mock.stop)
         scratch=REPO/'tmp/test-tmp';scratch.mkdir(parents=True,exist_ok=True)
         temp=tempfile.TemporaryDirectory(dir=scratch);self.addCleanup(temp.cleanup)
         self.root=Path(temp.name);self.deck=self.root/'deck';self.deck.mkdir()
         self.settings={'version':'v2','size':[20,20]}
-        self.render=patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render)
+        self.render=patch('ansatz_slide.page_api.checks.render_pptx',side_effect=fake_render)
         self.render.start();self.addCleanup(self.render.stop)
 
     def write(self,path,value):
@@ -59,7 +59,7 @@ class ReviewFixTests(unittest.TestCase):
                 def publish(*args):
                     result=real_publish(*args);asset.write_bytes(png(b'\xff\x00\x00'));return result
                 target='session_write' if during=='draft' else 'preserving_replace'
-                with patch('ansatz_slide.page_api.'+target,side_effect=write if during=='draft' else publish):
+                with patch('ansatz_slide.page_api.operations.'+target,side_effect=write if during=='draft' else publish):
                     with self.assertRaisesRegex(RuntimeError,'[Cc]oncurrent|changed'):
                         api.edit_page(session,opened['token'],content)
                 self.assertEqual(before,source.read_bytes())
@@ -82,12 +82,12 @@ class ReviewFixTests(unittest.TestCase):
 
     def test_create_retracts_manifest_if_asset_changes_during_publish(self):
         asset=self.asset();value=page();value['elements'].append(self.image())
-        real=work.atomic_write
+        real=work.processing.atomic_write
         def write(path,data,*args,**kwargs):
             result=real(path,data,*args,**kwargs)
             if Path(path).name=='pptx.yaml':asset.write_bytes(png(b'\xff\x00\x00'))
             return result
-        with patch('ansatz_slide.work_objects.atomic_write',side_effect=write):
+        with patch('ansatz_slide.work_objects.processing.atomic_write',side_effect=write):
             result=work.create(self.deck,self.settings,value)
         self.assertFalse(result['applied']);self.assertFalse((self.deck/'pptx.yaml').exists())
         self.assertTrue(list((self.deck/'.ansatz-recovery').glob('*/failed-creation')))
@@ -102,12 +102,12 @@ class ReviewFixTests(unittest.TestCase):
         self.assertEqual('conflict',result['status']);self.assertEqual(external,find_manifest(self.deck))
 
     def test_named_manifest_racing_publication_is_preserved(self):
-        real=work.atomic_write
+        real=work.processing.atomic_write
         def write(path,data,*args,**kwargs):
             result=real(path,data,*args,**kwargs)
             if Path(path).name=='pptx.yaml':self.external_manifest()
             return result
-        with patch('ansatz_slide.work_objects.atomic_write',side_effect=write):
+        with patch('ansatz_slide.work_objects.processing.atomic_write',side_effect=write):
             result=work.create(self.deck,self.settings,page())
         self.assertFalse(result['applied']);self.assertEqual('external.pptx.yaml',find_manifest(self.deck).name)
 
@@ -155,7 +155,7 @@ class ReviewFixTests(unittest.TestCase):
         verifier=importlib.util.module_from_spec(spec);spec.loader.exec_module(verifier)
         required,tests=verifier.required_files(REPO)
         self.assertIn('tests/core/test_review_fixes.py',tests)
-        for name in ('work_objects','page_api','occupancy','outline','gates','rendering','file_transactions'):
+        for name in ('work_objects/__init__','work_objects/processing','page_api/operations','occupancy','narrative','output','rendering','file_transactions'):
             path=f'ansatz_slide/{name}.py';self.assertIn(path,required)
             with self.assertRaisesRegex(ValueError,name):verifier.require_present(required-{path},required)
         self.assertIn('ansatz_slide/skill/reference/production/cli.md',required)
@@ -168,7 +168,7 @@ class ReviewFixTests(unittest.TestCase):
         verifier=importlib.util.module_from_spec(spec);spec.loader.exec_module(verifier)
         required,tests=verifier.required_files(REPO)
         wheel=self.root/'test.whl';sdist=self.root/'test.tar.gz'
-        extras={'ansatz_slide/shape_names.txt','ansatz_slide/templates/ppt/theme/theme1.xml'}
+        extras={'ansatz_slide/shape_names.txt','ansatz_slide/templates/presentation/ppt/theme/theme1.xml'}
         source={('skills/ansatz-slide/'+p.removeprefix('ansatz_slide/skill/')) if p.startswith('ansatz_slide/skill/') else 'src/'+p for p in required}|tests
         def archives(omit_wheel=None,omit_source=None):
             with ZipFile(wheel,'w') as archive:
@@ -179,7 +179,8 @@ class ReviewFixTests(unittest.TestCase):
         args=[sys.executable,str(REPO/'scripts/verify_distribution.py'),'--wheel',str(wheel),'--sdist',str(sdist)]
         archives();result=subprocess.run(args,capture_output=True,text=True)
         self.assertEqual(0,result.returncode,result.stderr)
-        for omitted in ('ansatz_slide/work_objects.py','ansatz_slide/skill/reference/production/cli.md'):
+        for omitted in ('ansatz_slide/work_objects/__init__.py','ansatz_slide/skill/reference/production/cli.md',
+                        'ansatz_slide/templates/notes/ppt/notesMasters/notesMaster1.xml'):
             archives(omit_wheel=omitted);result=subprocess.run(args,capture_output=True,text=True)
             self.assertNotEqual(0,result.returncode);self.assertIn(omitted,result.stderr)
         archives(omit_source='tests/core/test_review_fixes.py');result=subprocess.run(args,capture_output=True,text=True)

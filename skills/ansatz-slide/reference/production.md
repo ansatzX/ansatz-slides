@@ -7,7 +7,7 @@
 - 源稿准备好后先运行 `deck preflight`：支持正式项目和待导入候选，见[源稿预检](production/cli.md#源稿预检先于-pptx-与渲染)；不需要 Office 或 PPTX 输出。
 - 首次试作：使用下方最小示例。
 - 多页创建与修改：见 [CLI 操作](production/cli.md)，多页新报告使用 `deck import-pages`；已有项目优先使用 `deck open` 返回的一份计划，经 `deck revise` 批量修改并打开统一审阅入口。
-- 公式素材：见[公式制作](production/equations.md)。受检流程默认使用 LaTeX 生成 PNG 并保留源文件。
+- 公式素材：见[公式制作](production/equations.md)。默认使用原生可编辑 Office Math；当前受检测量限制与候选导出见该附录。
 - 数据图、数学与模型示意图：见[绘图制作](production/figures.md)，按用途选择 Matplotlib、TikZ 或 VectorCraft。
 - 保留已有 PPTX 其他页面：见[二进制单页替换](production/replace-page.md)。
 
@@ -25,7 +25,7 @@
 | 受检建页、修改、`deck export` 的文字测量与自动预览 | 上述环境 + LibreOffice + Poppler |
 | 可选 Deckcraft 创建 | 上述导出流程 + `deckcraft-cli` |
 | 独立查看最终 PPTX | Deckcraft、LibreOffice、Microsoft Office 三选一 |
-| LaTeX 生成公式图片 | `pdflatex` 与所需宏包 + Poppler 的 `pdftocairo`，见[公式制作](production/equations.md) |
+| 用户明确授权的公式图片（可选） | `pdflatex` 与所需宏包 + Poppler 的 `pdftocairo`，见[公式制作](production/equations.md) |
 | 根据数据绘图 | 绘图用 Python 环境及 Matplotlib 等所选 package，见[绘图制作](production/figures.md#matplotlib依据数据作图) |
 | TikZ 示意图 | TeX 引擎、TikZ 及所用宏包 + Poppler；中文和 `fontspec` 示例使用 XeLaTeX |
 | VectorCraft 示意图 | `vectorcraft-cli` 可批量生成和导出；`vectorcraft` 窗口可查看与手工编辑原生图稿，Agent 控制画布时使用控制通道 |

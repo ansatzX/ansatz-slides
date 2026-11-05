@@ -2,6 +2,7 @@
 
 import base64
 import json
+from pathlib import Path
 
 from .geometry import line_geometry, shape_geometry
 from .images import blip_fill, image_bytes, image_info
@@ -361,8 +362,6 @@ class SlideWriter:
                 self.shape_ids, self.size, self.theme, page.get("elements", [])
             ).write(page["animations"])
         if page.get("notes"):
-            from .notes import add_notes
-
             add_notes(self.package, self.number, page["notes"])
             self.relationships.add(
                 "notesSlide", f"../notesSlides/notesSlide{self.number}.xml"
@@ -375,3 +374,67 @@ class SlideWriter:
         self.package.add(
             f"ppt/slides/_rels/slide{self.number}.xml.rels", self.relationships.xml()
         )
+
+
+def add_notes(package, slide_number, value):
+    """按需载入备注母版，并生成本页备注及其关系部件。"""
+    if "ppt/notesMasters/notesMaster1.xml" not in package.parts:
+        folder = Path(__file__).with_name("templates") / "notes"
+        for path in folder.rglob("*"):
+            if path.is_file():
+                name = path.relative_to(folder).as_posix()
+                package.add(
+                    name,
+                    path.read_bytes(),
+                    PRESENTATION_MIME + "notesMaster+xml"
+                    if name.endswith("notesMaster1.xml")
+                    else None,
+                )
+    group = tag(
+        "p:nvGrpSpPr",
+        children=tag("p:cNvPr", {"id": 1, "name": ""})
+        + tag("p:cNvGrpSpPr")
+        + tag("p:nvPr"),
+    ) + tag("p:grpSpPr")
+    nonvisual = tag(
+        "p:nvSpPr",
+        children=tag("p:cNvPr", {"id": 2, "name": "Notes Placeholder 1"})
+        + tag("p:cNvSpPr", {"txBox": 1})
+        + tag("p:nvPr", children=tag("p:ph", {"type": "body"})),
+    )
+    properties = tag(
+        "p:spPr", children=transform([0, 0, 0, 0]) + preset_geometry() + tag("a:noFill")
+    )
+    paragraphs = "".join(
+        tag(
+            "a:p",
+            children=tag(
+                "a:r",
+                children=tag("a:rPr", {"lang": "en-US", "sz": 1200, "noProof": 1})
+                + text("a:t", line),
+            ),
+        )
+        for line in str(value).splitlines()
+    )
+    textbox = tag("p:txBody", children=tag("a:bodyPr") + tag("a:lstStyle") + paragraphs)
+    body = tag(
+        "p:cSld",
+        children=tag(
+            "p:spTree",
+            children=group + tag("p:sp", children=nonvisual + properties + textbox),
+        ),
+    )
+    body += tag("p:clrMapOvr", children=tag("a:masterClrMapping"))
+    package.add(
+        f"ppt/notesSlides/notesSlide{slide_number}.xml",
+        document(
+            "p:notes",
+            {f"xmlns:{key}": NAMESPACES[key] for key in ["p", "a", "r"]},
+            body,
+        ),
+        PRESENTATION_MIME + "notesSlide+xml",
+    )
+    rels = Relationships()
+    rels.add("notesMaster", "../notesMasters/notesMaster1.xml")
+    rels.add("slide", f"../slides/slide{slide_number}.xml")
+    package.add(f"ppt/notesSlides/_rels/notesSlide{slide_number}.xml.rels", rels.xml())

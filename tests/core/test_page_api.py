@@ -9,7 +9,7 @@ from unittest.mock import patch
 import zlib
 
 from ansatz_slide import page_api
-from ansatz_slide.inspection import inspect_pptx
+from ansatz_slide.package import inspect_pptx
 
 
 def png(color=b'\x00\x00\x00'):
@@ -28,7 +28,7 @@ def fake_render(source, folder, width):
 
 class PageAPITests(unittest.TestCase):
     def setUp(self):
-        text_mock=patch('ansatz_slide.page_api.measure_text',return_value={'status':'passed','elements':[],'engine':'stub for transaction/geometry tests'})
+        text_mock=patch('ansatz_slide.page_api.checks.measure_text',return_value={'status':'passed','elements':[],'engine':'stub for transaction/geometry tests'})
         text_mock.start();self.addCleanup(text_mock.stop)
         scratch=Path(__file__).resolve().parents[2]/'tmp/test-tmp';scratch.mkdir(parents=True,exist_ok=True)
         self.temp=tempfile.TemporaryDirectory(dir=scratch);self.addCleanup(self.temp.cleanup)
@@ -37,7 +37,7 @@ class PageAPITests(unittest.TestCase):
         self.manifest=self.project/'pptx.yaml'
         self.manifest.write_text(json.dumps({'version':'v2','size':[960,540],'pages':[f'{i}.page.yaml' for i in range(1,4)]}))
         for i in range(1,4):self.write_page(i)
-        self.render_patch=patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render)
+        self.render_patch=patch('ansatz_slide.page_api.checks.render_pptx',side_effect=fake_render)
         self.render_patch.start();self.addCleanup(self.render_patch.stop)
 
     def write_page(self,number,suffix=''):
@@ -88,7 +88,7 @@ class PageAPITests(unittest.TestCase):
 
     def test_preview_failure_preserves_original_and_keeps_draft(self):
         r=page_api.check_page(self.project,2,self.session);before=self.originals();self.draft(r)
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('no renderer')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('no renderer')):
             with self.assertRaisesRegex(RuntimeError,'no renderer'):
                 page_api.edit_page(self.session,r['token'])
         self.assertEqual(before,self.originals());self.assertIn('Edited local body',Path(r['editablePage']).read_text())
@@ -132,7 +132,7 @@ class PageAPITests(unittest.TestCase):
         r=page_api.check_page(self.project,2,self.session);self.draft(r);before=(self.project/'2.page.yaml').read_bytes()
         def changing(source,folder,width):
             result=fake_render(source,folder,width);self.write_page(1,' concurrent');return result
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=changing):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=changing):
             with self.assertRaisesRegex(RuntimeError,'changed during preview'):
                 page_api.edit_page(self.session,r['token'])
         self.assertEqual(before,(self.project/'2.page.yaml').read_bytes())
@@ -173,11 +173,11 @@ class PageAPITests(unittest.TestCase):
         r=page_api.check_page(self.project,2,self.session);before=self.originals()
         with self.assertRaisesRegex(ValueError,'at least two'):
             page_api.reshape_pages(self.session,r['token'],[r['editablePage']])
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('render failed')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('render failed')):
             with self.assertRaisesRegex(RuntimeError,'render failed'):
                 page_api.reshape_pages(self.session,r['token'],[r['editablePage']]*2)
         self.assertEqual(before,self.originals())
-        with patch('ansatz_slide.page_api.preserving_replace',side_effect=OSError('manifest write failed')):
+        with patch('ansatz_slide.page_api.operations.preserving_replace',side_effect=OSError('manifest write failed')):
             with self.assertRaisesRegex(OSError,'manifest write failed'):
                 page_api.reshape_pages(self.session,r['token'],[r['editablePage']]*2)
         for name,data in before.items():self.assertEqual(data,(self.project/name).read_bytes())
@@ -193,7 +193,7 @@ class PageAPITests(unittest.TestCase):
             calls+=1;result=fake_render(source,folder,width)
             if calls==2:asset.write_bytes(png(b'\xff\x00\x00'))
             return result
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=changing):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=changing):
             with self.assertRaisesRegex(RuntimeError,'asset edit'):
                 page_api.reshape_pages(self.session,r['token'],[draft,r['editablePage']])
         self.assertEqual(manifest_before,self.manifest.read_bytes())
@@ -283,11 +283,11 @@ class PageAPITests(unittest.TestCase):
 
     def test_insert_failure_preserves_order_and_sources(self):
         r=page_api.check_page(self.project,2,self.session);before=self.originals()
-        with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('render failed')):
+        with patch('ansatz_slide.page_api.checks.render_pptx',side_effect=RuntimeError('render failed')):
             with self.assertRaisesRegex(RuntimeError,'render failed'):
                 page_api.change_order(self.session,r['token'],'insert',content=r['editablePage'],allow_duplicates=True)
         self.assertEqual(before,self.originals())
-        with patch('ansatz_slide.page_api.preserving_replace',side_effect=OSError('manifest failed')):
+        with patch('ansatz_slide.page_api.operations.preserving_replace',side_effect=OSError('manifest failed')):
             with self.assertRaisesRegex(OSError,'manifest failed'):
                 page_api.change_order(self.session,r['token'],'insert',content=r['editablePage'],allow_duplicates=True)
         for name,data in before.items():self.assertEqual(data,(self.project/name).read_bytes())
@@ -322,7 +322,7 @@ class PageAPITests(unittest.TestCase):
         def state_fail(session,name,data):
             if name=='session.json':raise OSError('state failure')
             return original(session,name,data)
-        with patch('ansatz_slide.page_api.session_write',side_effect=state_fail):
+        with patch('ansatz_slide.page_api.operations.session_write',side_effect=state_fail):
             with self.assertRaisesRegex(OSError,'state failure'):
                 page_api.edit_page(self.session,r['token'])
         self.assertEqual(before,self.originals())
@@ -334,7 +334,7 @@ class PageAPITests(unittest.TestCase):
         def race(session,name,data):
             if name=='page.page.yaml':self.write_page(2,' external')
             return original(session,name,data)
-        with patch('ansatz_slide.page_api.session_write',side_effect=race):
+        with patch('ansatz_slide.page_api.operations.session_write',side_effect=race):
             with self.assertRaisesRegex(RuntimeError,'Concurrent'):
                 page_api.edit_page(self.session,r['token'])
         self.assertIn('external',(self.project/'2.page.yaml').read_text())
