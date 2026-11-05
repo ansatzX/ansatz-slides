@@ -1,156 +1,117 @@
 ---
 name: ansatz-slide
-description: Create and edit YAML presentation projects through page work objects, export editable PowerPoint files, and replace selected pages in an existing PPTX. Use for presentation authoring and scoped slide edits; arbitrary PPTX-to-source conversion is not lossless.
+description: 根据提供的材料创建和修改学术报告及课堂幻灯片。严格执行用户的论文阅读方法，组织内容、应用统一视觉风格、导出可编辑 PPTX、审阅实际页面并交付源文件。支持限定范围的修改及保留其他页的 PPTX 单页替换。
 ---
 
 # ansatz-slide
 
-Deliver the requested presentation and reusable source project. The model authors and reviews the content; the CLI checks schema, geometry and versions before publishing sources. Final visual and argument review remain separate from program acceptance.
+**理解材料与用途 → 组织页面内容 → 按唯一 style 排版并预检源稿 → 生成 PPTX → 看实际页面并修正 → 交付。**
 
-## Working rules
+用户的事实、模板和明确要求优先；保留人类结论的含义、范围与确定程度，疑点明确指出。
+“从头制作”须重新审视材料、提纲与页面组织；只重新导出则保留原内容。局部修改保留
+非目标页面、清单与共享素材。六步直接体现在工作中，不增加六份表单或六次确认。
 
-Preserve supplied facts, user scope and unrelated work. User templates override visual defaults. Missing evidence stays explicit; do not fabricate results, citations or assets. Resolve consequential ambiguity, otherwise proceed with reasonable assumptions. These instructions grant no additional permissions or mandatory approval steps.
+## 论文阅读：read.md 必须全文进入上下文
 
-Use the actual installed CLI and available image tools. Do not weaken validation or overwrite a full deck to evade a failed scoped edit. Record only observed checks. Keep working notes in permitted scratch storage, outside the slide content.
+凡涉及阅读、解释、总结论文，或根据论文组织 PPT 内容，执行任务的 AI 必须先把
+[reference/content/read.md](reference/content/read.md) **全文读取到当前上下文**，严格执行
+其中全部要求。文件存在、读过摘要或执行过读取命令，都不能代替全文实际进入上下文。
 
-## Mathematical notation
+不得为节省时间、tokens、篇幅而跳读、概括替代或删减要求，也不得自行断言摘要无损。
+工具输出截断时分段读到末尾。新会话、上下文压缩或移交后，当前上下文若只有摘要，
+必须重新完整读取；实际执行阅读的每个 AI 都适用。已经完整保留在当前上下文时可直接使用。
 
-Author mathematical expressions and most mathematical symbols in **LaTeX**,
-including inline variables, Greek letters, relations, operators and scripts.
-Do not build formulas from Unicode glyphs such as α, ≥, ∑ or superscript digits.
-For supported editable inline math, write `\(x_i\)` or `\(\alpha \geq 0\)` in
-YAML block/single-quoted text (double the backslashes in JSON strings).
-For full expressions, use the [LaTeX rendering route](reference/equations.md)
-and preserve the `.source.tex`; unsupported native commands are not a reason
-to substitute Unicode text. Ordinary prose, punctuation and proper names remain
-text. This is an authoring rule, not permission to rewrite unrelated supplied text.
+只有用户明确调整时才采用其调整，不能从“制作 PPT”推定用户同意简化阅读。
+其他参考的摘要、通用建议和章节查阅规则均不能降低这项要求。
 
-## Choose the needed reference
+## 按任务读取：哪些文件必须读
 
-| Need | Reference |
+表中的“全文”要求实际读完，出现输出截断时继续读取；“相关章节”要求在执行该操作
+前读到对应说明。已完整保留在当前上下文中的同版本内容不必重复加载。
+
+| 当前任务 | 必须读取 |
 | --- | --- |
-| Environment, installation, renderer dependencies | [Operations](reference/operations.md) |
-| First page | [Executable starter](reference/authoring-start.md) |
-| Author from supplied material | [Source workflow](reference/source-workflow.md) |
-| Create, update or reorder pages | [Work-object CLI](reference/review-cli.md) |
-| Look up fields | [Presentation schema](reference/presentation-schema.md) |
-| Choose a scenario or named style | [Scenarios](reference/slides_categories.md), [style inventory](reference/design-system-inventory.md), [style boundaries](reference/design-system-runtime.md) |
-| Academic talk or substantive academic rewrite | [Academic authoring](reference/academic-authoring.md) |
-| Research group report | [Group-report choices](reference/group-report-guide.md) |
-| Equation typesetting | [Equations](reference/equations.md) |
-| Poster or infographic | [Poster guide](reference/general-poster.md) |
-| Check explanation and layout | [Page and deck review](reference/page-and-deck-review.md) |
-| Preserve other pages of an existing PPTX | [Page replacement](reference/page-edit.md) |
-| Final handoff | [Delivery checks](reference/delivery-checks.md) |
+| 新建或从头制作报告 | [content.md](reference/content.md)、[style.md](reference/style.md)、[production.md](reference/production.md)、[review.md](reference/review.md) 全文；涉及论文先完整读取并执行 `read.md` |
+| 修改已有源项目的内容 | `content.md`、`review.md` 全文；`production.md` 的项目、环境及导出章节；[production/cli.md](reference/production/cli.md) 的项目级修改计划章节。涉及论文阅读时先完整读取并执行 `read.md`；改布局时再全文读 `style.md` |
+| 只改布局、字体或配色 | `style.md`、`review.md` 全文；`production.md` 的环境与文件边界章节；`production/cli.md` 的项目级修改计划章节 |
+| 只重新导出 | `production.md` 的运行环境、渲染依赖、导出与检查章节；`review.md` 全文 |
+| 替换已有 PPTX 的单页并保护其他页 | [production/replace-page.md](reference/production/replace-page.md)、`review.md` 全文；制作目标页时叠加上述内容／布局任务的必读项 |
+| 只检查源文件或排查程序错误 | `production.md` 的相关操作与依赖章节；[technical.md](reference/technical.md) 的报错字段及相关共享类型。若检查视觉效果，再全文读 `style.md`、`review.md` |
 
-Read only what the task needs. For a new academic talk, understand the argument before layout; a reading note is not automatically a slide outline. A local typography correction does not authorize reauthoring the talk.
+新建报告还须按实际操作读取下表对应附录；制作参考中的最小示例不能代替操作说明。
 
-## New decks and batch insertion
+| 触发条件 | 执行前必须补读 |
+| --- | --- |
+| 多页新建或插页 | `production/cli.md` 的“批量建页 / 插页与重复提交保护”及“结构操作后的 work 恢复” |
+| 逐页 work 修改、拆分、合并、移动或恢复 | `production/cli.md` 中对应操作、限制和恢复章节 |
+| 出现公式或需要制作公式图片 | [production/equations.md](reference/production/equations.md) 全文 |
+| 补充模型示意图、数据图、引用或待补素材 | `content.md` 的“按讲解需要补齐页面元素”和“参考文献与外部补充”；`production.md` 的“素材准备与可替换占位” |
+| 根据数据绘图，或制作数学／模型／架构示意图 | [production/figures.md](reference/production/figures.md) 的路线选择、共同规则、所选 Matplotlib／TikZ／VectorCraft 路线与检查交付；VectorCraft 命令以本机目录为准 |
+| 选择 Deckcraft 创建 | `production.md` 的 Deckcraft 创建章节，以及 `production/cli.md` 的支持子集与限制 |
+| 用 Deckcraft 独立查看最终 PPTX | `production.md` 的“使用 Deckcraft 独立渲染”章节 |
+| 编写或修改 YAML 字段 | `technical.md` 的全局约定、清单／页面／元素基类、实际使用的元素和共享类型章节 |
+| 源稿已写好，准备建页、修改或导出 | [源稿预检](reference/production/cli.md#源稿预检先于-pptx-与渲染)，先运行 `deck preflight` 并处理问题 |
+| 使用形状调整参数或不熟悉的形状名称 | [technical/shapes.md](reference/technical/shapes.md) 的参数约定及目标形状行 |
 
-For several new pages, write an ordered JSON/YAML list of page paths and use
-`ansatz-slide deck import-pages PROJECT --settings settings.yaml --plan pages.json
---request-id initial-v1`. Existing decks omit settings and may use `--after N`
-(default append; zero inserts at the start). All candidates are checked before
-one manifest publication; do not build a long chain of single-page insert calls.
-Keep the returned `resumeToken`; repair retained candidates and use `deck resume
-TOKEN` after failure. Replaying an applied request returns its receipt without
-inserting again. A new payload needs a new request-id; duplicate page content is
-rejected unless intentional repetition is explicitly allowed. Single-page
-`page insert` also rejects duplicate content; use `--allow-duplicates` only when
-repetition is intended, including on `page update` of a retained insertion. See
-[the work-object CLI](reference/review-cli.md) for limits and recovery evidence.
+## 五部分的职责
 
-Page work also returns a stable `resumeToken`: `page resume TOKEN` resolves its
-latest revision without writing. After source changes use `page rebase TOKEN`,
-review the current context and retained candidate, then update. A deleted source
-anchor requires explicit `--page N`; never infer a new target from an old index.
+内容与阅读衔接由 `content.md` 维护；唯一视觉规范在 `style.md`；环境、源项目和操作
+在 `production.md` 及其附录；实际页面验收在 `review.md`；语法与能力边界在
+`technical.md` 及形状附录。`read.md` 是内容部分中用户提供的完整阅读指令，正文不得改写。
 
-## Efficient revision loop
+## 执行与交付
 
-For an existing deck, read only the requested pages and relevant instructions.
-Use `ansatz-slide --compact page open PROJECT --page 2 --page 4 --no-preview`
-when the old version is already available for visual reference. This opens both
-pages in one tool call without rendering old pages again. `textFit: unverified`
-means measurement was deferred, never passed. Updates still run all checks and
-render the new candidate before publication. Omit `--no-preview` when you need
-to see the existing appearance.
+**一页事一页毕。** 在某页使用外部方法、同行结论、数据、图或公式，就在该页提供
+可读的具体文献；备注、封面或末尾文献表只补充信息。讲解或推理依赖的公式须在
+当页正式排版并解释符号，不能只提名称、用图中小字替代，或让听众翻到其他页查找。
+正文中的数学符号、上下标和数学单位同样从 LaTeX 正式排版，不能用 Unicode 字符
+或普通文本的 HTML 上下标冒充；当前受检路线插入排版后的 PNG 并保留 TeX 源。
+具体要求见 `content.md` 的“参考文献与外部补充”和 `production/equations.md`。
 
-Use `--compact` for work commands to avoid repeatedly reading dense matrices and
-successful font reports. Source content is included on open; full evidence stays
-in the returned `revisionEvidence` file. Read detailed evidence when a failure
-needs it. Compact output retains issues, restrictions, live directives and
-neighbor freshness. It is a presentation option, not a weaker check.
+1. **理解材料与用途。** 按必读文件确定用途与交付要求。论文先完整读取并执行
+   `read.md`，再梳理问题、同行进展、方法、证据、结论与限制。
+2. **组织页面内容。** 从完整阅读结果建立主线和必要前提；排版前检查每页讲什么、
+   凭什么、如何衔接。通常第 2 页先讲清背景与具体研究问题，再串读各页总结句，
+   检查整稿论证和相邻页推进关系；不默认结果先行或把材料切成孤立知识卡片。
+   直接陈述发现与适用条件，避免
+   否定、双重否定和反驳式句型堆积。大小标题之外的正文、要点和解释必须使用完整
+   句子，避免关键词或换行短语的流水账；具体边界与示例见 `content.md` 的学术表达。
+   不能以页面篇幅降低阅读要求。按讲解需要确定公式、引用、
+   数据图与模型示意图；材料中没有现成图不等于页面不需要。主动补充有依据的素材，
+   暂缺时在 `page.yaml` 中落实可替换占位及说明，不能只在提纲中提及。
+3. **按唯一 style 排版。** 根据讲解关系安排图文，先保证主证据可读，再安排解释与
+   标注。顶部使用“章节: 页标题”，主题凝练；概览按关系组织，少量文字不撑成三个大空框。
+   需要新图时按用途采用数据绘图 package（如 Matplotlib）、TikZ 或 VectorCraft，
+   将图稿和来源接入页面；具体视觉参数只在 `style.md` 维护。
+4. **生成 PPTX。** 按可执行语法编写 YAML、准备项目内素材。先用 `deck preflight`
+   检查正式项目或待导入的候选清单，不启动 Office；按返回页码和元素处理错误与
+   待审阅提示，并核对当页引文、正式公式、符号和布局。在素材阶段检查裁图，
+   从源稿就能发现的问题先解决，再生成与渲染。多页新建用
+   `deck import-pages`；已有项目优先用 `deck open → 编辑返回计划 → deck revise`。
+   默认 native，可选 Deckcraft 创建须先核对支持范围；同一项目不并发写入。
+5. **看实际页面并修正。** `deck revise` 返回统一的 `review.viewer` 和 `review.manifest`；
+   其他导出路径使用选定引擎渲染实际 PPTX。复用最终渲染，用少量可读拼图批量检查
+   讲解、字体、公式、裁图和布局，疑点页才单独放大；修改后复查受影响范围。
+   程序检查通过不等于视觉验收；矩阵留给代码按需诊断。
+6. **交付。** 提供最终 PPTX、可复用源文件与素材，简述实际查看的范围和剩余问题。
+   源文件改动后更新 PPTX；需要保护已有二进制文件的其他页时按单页替换附录执行。
 
-For an existing deck with several requested page changes, prefer one delivery
-command after the combined open: `ansatz-slide deck revise PROJECT --plan
-revision.json -o next.pptx`. The plan is a list of `{"work":"WORK_PATH",
-"edits":[...]}` with optional `"layout":[...]`. Prefer these local patches over
-writing a candidate file. Full `"content":"candidate.page.yaml"` is for an
-explicitly requested structural redesign, not routine next-version edits.
-Paths are relative to the plan file. The command applies checked edits sequentially,
-exports once, renders the actual full PPTX and returns changed-page image paths
-plus stage timings. Open those images together and deliver; a second inspect or
-manual Office/Poppler conversion is unnecessary unless evidence is missing.
-Do not regenerate the whole-deck brief for a visual-only revision.
+## 由独立 subagent 制作并检验效果
 
-Reuse existing element IDs, styles and groups. For placement, use `layout`:
-`{"kind":"row","items":[["box1","text1"],["box2","text2"]],"bounds":[60,180,820,100]}`
-moves groups intact and calculates equal gaps; `column` does the same vertically.
-`{"kind":"segments","items":["seg1","seg2"],"bounds":[60,240,820,54],"weights":[2,1]}`
-computes weighted bar sizes. Do not hand-calculate every coordinate or introduce
-fresh page-generation scripts for these operations. See the local-layout examples
-in `reference/review-cli.md`. Only change fields requested by the user; layout
-does not silently shrink text, alter styles, or remove content to make it fit.
+创建或实质修订 PPTX 时，协调任务的主 Agent 将制作交给独立 subagent，后者读取
+当前 skill 和所需参考，执行内容组织、页面制作、导出与初步审阅；主 Agent 检查其
+实际交付，再把问题交回制作 Agent 修正。已被分派制作任务的 subagent 直接执行，
+无需再递归委派同一制作任务。
+这是用户指定的 skill 实效验证方式，后续制作同样执行。没有 subagent 能力时明确
+说明，不能把主 Agent 自己制作宣称为独立验证。
 
-A revision is NOT an atomic multi-page source write: if a later page fails,
-`appliedPages` lists completed source edits and `pages` gives retained work for
-repair. Remaining edits stop and the previous delivery PPTX stays untouched.
-Repair only the failed/remaining work, then rerun a plan using current references;
-do not blindly replay stale applied entries. If all source edits applied but
-final rendering failed, use a plan with the latest returned work references
-(no-op content is permitted) to retry safely. Final images require model/human
-review; rendering success does not certify meaning or PowerPoint/WPS parity.
+给制作 Agent 原始任务、材料位置、输出目录和 skill 入口，使用新的上下文，不提供
+主 Agent 预写的逐页答案或绕过 skill 的补丁方案。用户明确要求仍须原样传达；涉及
+论文时，制作 Agent 自己全文读取 `read.md`。在隔离目录生成，保留已有交付。
+交付时说明制作分工、主 Agent 发现并要求修正的问题以及实际验收范围。
 
-Prepare all requested changes together. For several edits on one page, use
-`page update WORK --edits edits.json`, a list of
-`{"element":"title","changes":{"content":{"text":"New title"}}}`.
-This creates one checked revision and one new preview. Use `--content` only when
-replacing the page structure. Independent pages may be opened in one call and
-updated sequentially in one tool invocation; do not run concurrent source writers.
-Check each result and stop on failure. Reuse the returned work references; do not
-reopen pages just to obtain another reference. Open the changed-page images
-together when the runtime permits. Record only affected outline entries; rewrite
-the whole-deck brief only when its premise/section argument actually changes.
-
-On text failure read `overflowEdges` and `repairHint`: a negative top/left edge
-is not solved merely by enlarging width/height. Inspect paragraph/font layout
-instead of repeatedly growing the frame. Never delete content to silence a gate.
-
-## Normal authoring loop
-
-1. Prepare settings, a first-page candidate and project-local assets using the starter. Run `deck create PROJECT --settings FILE --content FILE`.
-2. Use the returned `work`, or open requested pages together. Always retain live directives; review neighboring logic when the argument/order changes. Existing-deck visual/text corrections follow the efficient loop above instead of restarting authoring.
-3. Batch small changes with `edits` and computed placement with `layout`. Use full `--content` only for a requested structural redesign. Continue with the returned work reference.
-4. For a new deck record purpose, audience, central claim and section argument with `deck brief`; keep page intents in `deck outline`. Update these only when their meaning changes. Use `page insert/split/merge/move/remove` when page structure needs to change.
-5. Deliver after checking the actual final PPTX previews. `deck revise` already exports and structurally inspects the artifact; do not repeat that tool chain. Open changed-page images together and promptly return the file; prepare extensive logs only if requested.
-
-Formal YAML has a first-line CLI reminder: edit candidates and publish through the CLI instead of directly rewriting existing formal files. The reminder is not a filesystem permission barrier. Page filenames identify sources; manifest order defines page numbers.
-
-Native text is measured with actual font layout before publication; inspect `textFit` for required dimensions, actual fonts and overflow. Table/chart labels and image-contained text still need separate visual review.
-
-Geometry failure retains the candidate and matrices. Only layout changes are then allowed; preserve content and styles. After three consecutive geometry failures, splitting is suggested, not mandatory. Intentional overlaps require specific element pairs and reasons; do not blanket-approve collisions to pass.
-
-Read `context.narrative` during page work. Record explicit user requirements and revisable model proposals separately with `deck directive`, citing their actual sources. Revise or revoke by ID with evidence; never infer revocation from source changes. Resolve `unresolvedDirectives` after source pages are retired. Review the whole argument after structural changes, and affected page intents after premise changes. Preserve narrative/outline metadata with the source handoff.
-
-`gates.hard` reports program restrictions. `gates.live` carries semantic requirements and optional suggestions for the model. The CLI never grades or certifies them. Missing or stale intent calls for review, not an invented program gate. Review affected neighboring logic after a local change; broaden only when shared content or premises require it.
-
-## Export and deliver
+常用完整导出：
 
 ```bash
 ansatz-slide deck export ./deck -o ./result.pptx --offline --transition none
-ansatz-slide inspect ./result.pptx
 ```
-
-Use the actual project path. Standalone Skill execution replaces `ansatz-slide` with `python <skill>/scripts/ansatz_slide.py` in its environment. `--force` permits authorized output replacement only; it cannot skip checks. `deck export` defaults to no transition; older `export`/`replace-page` default to fade. Academic decks normally omit element animation.
-
-Source updates do not overwrite an existing full-deck PPTX. Export again, or use binary page replacement when preservation of existing non-target slides is required. Fonts are not embedded. Deliver the manifest, referenced pages and assets with the requested PPTX; distinguish structural, visual and semantic checks and identify any unverified layer.

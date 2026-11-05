@@ -15,7 +15,7 @@ SKILL = ROOT / 'skills/ansatz-slide'
 
 class AuthoringStartTests(unittest.TestCase):
     def test_published_starter_exports_expected_native_objects(self):
-        content = (SKILL/'reference/authoring-start.md').read_text()
+        content = (SKILL/'reference/production.md').read_text()
         blocks = re.findall(r'```yaml\n(.*?)\n```', content, re.S)
         self.assertEqual(len(blocks), 2)
         manifest, page = [yaml.safe_load(block) for block in blocks]
@@ -28,6 +28,13 @@ class AuthoringStartTests(unittest.TestCase):
                                       str(project), '--settings', str(project/'settings.yaml'), '--content', str(project/'first.page.yaml')],
                                      capture_output=True, text=True, timeout=60)
             self.assertEqual(created.returncode, 0, created.stdout+created.stderr)
+            checked = subprocess.run([sys.executable, str(SKILL/'scripts/ansatz_slide.py'), 'deck', 'preflight',
+                                      str(project), '--offline'], capture_output=True, text=True, timeout=10)
+            import json
+            self.assertEqual(checked.returncode, 0, checked.stdout+checked.stderr)
+            # A placeholder example has no borrowed facts to cite. Its real
+            # section title must nevertheless pass the source title check.
+            self.assertNotIn('section-title', {i['code'] for i in json.loads(checked.stdout)['issues']})
             output = project/'starter.pptx'
             result = subprocess.run([sys.executable, str(SKILL/'scripts/ansatz_slide.py'), 'export',
                                      str(project), '-o', str(output)], capture_output=True, text=True, timeout=60)
@@ -41,7 +48,7 @@ class AuthoringStartTests(unittest.TestCase):
                 for element in page['elements']:
                     if element['elementType']=='text':
                         self.assertIn(element['content']['text'], text)
-                self.assertEqual(len(xml.findall('.//p:sp', ns)), 4)
+                self.assertEqual(len(xml.findall('.//p:sp', ns)), 5)
                 self.assertEqual(len(xml.findall('.//p:pic', ns)), 0)
                 self.assertIsNotNone(xml.find('p:transition/p:fade', ns))
 

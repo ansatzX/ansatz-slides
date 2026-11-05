@@ -42,6 +42,8 @@ def attach(result):
                 'suggestions':[{**s,'optional':True} for s in suggestions],
                 'evaluation':'not evaluated by the CLI',
                 'instruction':'Honor semantic requirements using the three-page logic and evidence. Suggestions are optional. Program success is not semantic acceptance.'}}
+    result['gates']['visual']={'owner':'model','status':'not_evaluated',
+        'instruction':'Open the actual PPTX render to assess typography, hierarchy, crops and readability. Geometry/text-fit passes and successful rendering do not constitute visual acceptance.'}
     result['gates']['facts']={'origin':'program','work':result.get('work'),
         'state':'historical' if result.get('status')=='conflict' else 'candidate',
         'applied':result.get('applied',False),

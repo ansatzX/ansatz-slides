@@ -175,6 +175,27 @@ def check_page(size, page, theme, folder):
                 detail=', '.join(f'{edge} {amount:.2f} pt' for edge,amount in overflow.items())
                 hint=('Top/left overflow is a local text-origin/line-metric issue; enlarging frame width/height alone does not fix it. Inspect font and paragraph spacing.'
                       if 'top' in overflow or 'left' in overflow else 'Adjust wrapping, frame dimensions or typography while preserving content.')
+                # Word boxes include ascender/descender metrics. Verify painted
+                # ink before rejecting a small metric-only boundary excursion.
+                # Backgrounds could hide glyph bounds, so they are not eligible.
+                actual_content=element.get('content',{})
+                eligible=not actual_content.get('backgroundColor') and not actual_content.get('style') and 'background' not in str(actual_content.get('text','')).lower()
+                if eligible and max(overflow.values(),default=0)<=4 and number-1 not in aligned_probes:
+                    from .text_ink import bounds as ink_bounds
+                    ink=ink_bounds(pdf.resolve(),number,folder,item['measuredBounds'],(w,h))
+                    if ink is not None:
+                        item['inkBounds']=ink
+                        il,it,iw,ih=ink
+                        if il>=-tolerance and it>=-tolerance and il+iw<=w+tolerance and it+ih<=h+tolerance:
+                            item.update(status='passed',measurement='raster-confirmed ink; PDF font metrics extend beyond frame',
+                                        metricOverflowEdges=overflow)
+                            continue
+                # A useful enlargement suggestion is explicit and never applied.
+                # Top/left excursions require inspection rather than guessed offsets.
+                if not any(edge in overflow for edge in ('top','left')):
+                    item['repair']={'element':element['elementId'],
+                        'changes':{'bounds':[element['bounds'][0],element['bounds'][1],max(w,right)+1,max(h,bottom,intrinsic_height)+1]},
+                        'automatic':False,'meaning':'Measured size suggestion; check neighboring elements and rerun geometry.'}
                 item.update(status='overflow',overflowEdges=overflow,repairHint=hint,
                             reason=f"overflows {detail}; local bounds [{left:.2f}, {top:.2f}, {right:.2f}, {bottom:.2f}]; frame {w} × {h} pt. {hint}")
             else:item['status']='passed'
@@ -183,6 +204,61 @@ def check_page(size, page, theme, folder):
     report['status']='blocked' if any(e['status']!='passed' for e in report['elements']) else 'passed'
     (folder/'text-fit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
     return report
+
+
+def check_pages(size, pages, theme, folder):
+    """Share probe conversion across pages, preserving page-local element IDs.
+
+    Chunk by probe count to bound consumer memory and conversion time. Reports
+    are always freshly measured; no persisted result bypasses a later check.
+    """
+    folder = Path(folder)
+    reports = []
+    groups = []
+    group = []
+    count = 0
+    for number, page in enumerate(pages, 1):
+        weight = sum(2 if isinstance(e.get('content', {}).get('align'), list)
+                     and e['content']['align'][-1] in ('middle', 'bottom') else 1
+                     for e in page.get('elements', []))
+        if group and count + weight > 128:
+            groups.append(group); group = []; count = 0
+        group.append((number, page)); count += weight
+    if group:
+        groups.append(group)
+    for batch_number, group in enumerate(groups, 1):
+        combined = {'elements': []}
+        identities = {}
+        for number, page in group:
+            for index, element in enumerate(page.get('elements', [])):
+                candidate = copy.deepcopy(element)
+                key = f'page-{number}-element-{index}'
+                identities[key] = (number, element.get('elementId'))
+                candidate['elementId'] = key
+                combined['elements'].append(candidate)
+        measured = check_page(size, combined, theme, folder / f'batch-{batch_number}')
+        per_page = {}
+        for number, page in group:
+            report = {k: copy.deepcopy(v) for k, v in measured.items()
+                      if k not in ('elements', 'unmeasuredObjects', 'status')}
+            report.update(page=number, status='passed', elements=[],
+                          unmeasuredObjects=[e.get('elementId') for e in page.get('elements', [])
+                                             if e.get('elementType') == 'chart'])
+            per_page[number] = report
+        for item in measured['elements']:
+            number, original_id = identities[item['elementId']]
+            item = copy.deepcopy(item); item['elementId'] = original_id
+            if item.get('repair'):item['repair']['element']=original_id
+            per_page[number]['elements'].append(item)
+            if item['status'] != 'passed':
+                per_page[number]['status'] = 'blocked'
+        for number, _ in group:
+            report = per_page[number]
+            destination = folder / str(number)
+            destination.mkdir(parents=True, exist_ok=True)
+            (destination / 'text-fit.json').write_text(json.dumps(report, ensure_ascii=False, indent=2))
+            reports.append(report)
+    return reports
 
 
 def require_pass(report):
@@ -207,9 +283,7 @@ def check_loaded(pptd, root):
     import tempfile
     root=session_path(Path(root)/'.ansatz');root.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='text-check-',dir=root) as folder:
-        for number,page in enumerate(pptd['pages'],1):
-            report=check_page(pptd['size'],page,pptd.get('theme',{}),Path(folder)/str(number))
-            report['page']=number
+        for report in check_pages(pptd['size'], pptd['pages'], pptd.get('theme', {}), folder):
             require_pass(report)
     return {'status':'passed','pageCount':len(pptd['pages']),'engine':'LibreOffice + Poppler',
             'scope':'Native horizontal text and isolated table silhouettes; charts and target-consumer appearance need separate review'}

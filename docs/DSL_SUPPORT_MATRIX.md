@@ -1,6 +1,6 @@
 # Executable pptx.yaml support matrix
 
-This matrix records what the current `ansatz-slide` package actually validates and exports. Executable boundaries are enforced by the validator, occupancy gate and publication code. Use [the field reference](../skills/ansatz-slide/reference/presentation-schema.md) for syntax and [work objects](../skills/ansatz-slide/reference/review-cli.md) for the current authoring interface.
+This matrix records what the current `ansatz-slide` package actually validates and exports. Executable boundaries are enforced by the validator, occupancy gate and publication code. Use [the field reference](../skills/ansatz-slide/reference/technical.md) for syntax and [work objects](../skills/ansatz-slide/reference/production/cli.md) for the current authoring interface.
 
 These statuses describe compatibility, not the preferred authoring workflow. In normal production, figures, charts, and finished tables come from a dedicated tool or the user as PNG/SVG assets; pptx.yaml/PPTX performs layout, captions, annotations, and sourcing. Native chart/table DSL remains tested so existing legal inputs cannot silently degrade.
 
@@ -74,8 +74,12 @@ These statuses describe compatibility, not the preferred authoring workflow. In 
 
 - Permanent boundary fixture: `tests/core/fixtures/boundary-capabilities/`
 - Permanent export/OOXML regression: `tests/core/test_boundary_capabilities.py`
-- Runnable authoring example: `skills/ansatz-slide/reference/authoring-start.md`
+- Runnable authoring example: `skills/ansatz-slide/reference/production.md`
 - Starter export/OOXML regression: `tests/core/test_authoring_start.py`
 - Incremental preservation regressions: `tests/core/test_incremental_replace_pptx.py`
 
-Historical scratch reports are not shipped or assumed present. Use retained fixtures and current test runs for reproducible structural checks; a regression pass does not replace target-consumer visual review. See [delivery checks](../skills/ansatz-slide/reference/delivery-checks.md) for claim-specific evidence.
+Historical scratch reports are not shipped or assumed present. Use retained fixtures and current test runs for reproducible structural checks; a regression pass does not replace target-consumer visual review. See [delivery checks](../skills/ansatz-slide/reference/review.md#交付) for claim-specific evidence.
+
+## Optional Deckcraft creation backend
+
+This matrix describes the native exporter. `export` / `deck export --backend deckcraft` use a smaller, fail-closed DSL subset; see [supported creation fields](../skills/ansatz-slide/reference/production.md#可选创建后端deckcraft). Native feature support does not imply Deckcraft adapter support.

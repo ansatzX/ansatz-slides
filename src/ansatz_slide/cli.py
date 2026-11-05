@@ -12,12 +12,15 @@ from .project import export_project, load_project
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="ansatz-slide", description=__doc__)
     parser.add_argument("--version", action="version", version="ansatz-slide 0.0.1")
-    parser.add_argument("--compact", action="store_true", help="Summarize work evidence on stdout; full result remains in the work directory")
+    detail = parser.add_mutually_exclusive_group()
+    detail.add_argument("--compact", action="store_true", help="Compact work evidence (default)")
+    detail.add_argument("--full", action="store_true", help="Include full work evidence on stdout; does not generate matrices")
     commands = parser.add_subparsers(dest="command", required=True)
     validate = commands.add_parser("validate", help="Validate a YAML presentation project")
     validate.add_argument("source")
     export = commands.add_parser("export", help="Export YAML sources to editable PPTX")
     export.add_argument("source")
+    export.add_argument("--backend", choices=("native", "deckcraft"), default="native")
     export.add_argument("-o", "--output", required=True)
     export.add_argument("--transition", choices=("fade", "none"), default="fade")
     export.add_argument("--force", action="store_true")
@@ -44,7 +47,7 @@ def main(argv=None):
     install.add_argument("--force", action="store_true")
     page = commands.add_parser("page", help="Inspect and edit one source page at a time")
     page_actions = page.add_subparsers(dest="page_action", required=True)
-    open_page = page_actions.add_parser("open", help="Open a page work object with candidate, matrices and preview")
+    open_page = page_actions.add_parser("open", help="Open a page work object with candidate, geometry issues and preview")
     open_page.add_argument("project",type=Path)
     open_page.add_argument("--page",required=True,type=int,action="append",help="Repeat to open several independent pages in one call")
     open_page.add_argument("--no-preview",action="store_true",help="Read for editing without rendering the old page; update still renders and validates")
@@ -111,6 +114,14 @@ def main(argv=None):
     text_check.add_argument("--output",required=True,type=Path)
     deck = commands.add_parser("deck", help="Read the outline or publish a checked draft manifest")
     deck_actions = deck.add_subparsers(dest="deck_action", required=True)
+    preflight=deck_actions.add_parser('preflight',help='Check sources before PPTX/Office work; never render, fetch assets or publish')
+    preflight.add_argument('source',type=Path,help='Existing project or future project asset root')
+    preflight.add_argument('--plan',type=Path,help='Candidate page list, in import-pages format')
+    preflight.add_argument('--settings',type=Path,help='Creation settings without pages, required with --plan')
+    preflight.add_argument('--page',type=int,action='append')
+    preflight.add_argument('--offline',action='store_true')
+    preflight.add_argument('--strict',action='store_true',help='Return nonzero for advisory findings as well as errors')
+    preflight.add_argument('--basic',action='store_true',help='Only schema, geometry and local asset checks; skip academic hints')
     batch=deck_actions.add_parser('import-pages',help='Create/insert an ordered batch with idempotency and retained candidates')
     batch.add_argument('project',type=Path)
     batch.add_argument('--plan',type=Path,required=True)
@@ -144,10 +155,21 @@ def main(argv=None):
             action.add_argument('--quote',help='Exact relevant text from the revocation instruction')
     export_deck=deck_actions.add_parser("export",help="Export current checked sources")
     export_deck.add_argument("source",type=Path)
+    export_deck.add_argument("--backend",choices=("native","deckcraft"),default="native")
     export_deck.add_argument("-o","--output",type=Path,required=True)
     export_deck.add_argument("--force",action="store_true")
     export_deck.add_argument("--offline",action="store_true")
     export_deck.add_argument("--transition",choices=("none","fade"),default="none")
+    open_deck=deck_actions.add_parser("open",help="Read selected pages and create one version-bound edit plan")
+    open_deck.add_argument("project",type=Path)
+    open_deck.add_argument("--page",type=int,action="append")
+    open_deck.add_argument("--width",type=int,default=1600)
+    open_deck.add_argument("--no-preview",action="store_true")
+    review_deck=deck_actions.add_parser("review",help="Record a human/Agent visual observation for an unchanged rendered version")
+    review_deck.add_argument("directory",type=Path)
+    review_deck.add_argument("--page",type=int,required=True)
+    review_deck.add_argument("--status",choices=("reviewed","needs_fix"),required=True)
+    review_deck.add_argument("--note",required=True)
     revise_deck=deck_actions.add_parser("revise",help="Apply a version-bound page plan, export once and render final previews")
     revise_deck.add_argument("project",type=Path)
     revise_deck.add_argument("--plan",type=Path,required=True)
@@ -202,13 +224,23 @@ def main(argv=None):
                     content=getattr(args, "content", None), position=getattr(args, "position", "after"),
                     anchor_session=getattr(args, "anchor_session", None), anchor_token=getattr(args, "anchor_token", None),allow_duplicates=getattr(args,"allow_duplicates",False))
         elif args.command == "deck":
-            if args.deck_action in ('import-pages','resume'):
+            if args.deck_action=='preflight':
+                from .preflight import check as check_sources
+                result=check_sources(args.source,plan=args.plan,settings=args.settings,numbers=args.page,
+                                     academic=not args.basic,allow_remote=not args.offline)
+            elif args.deck_action in ('import-pages','resume'):
                 from . import batch_pages
                 from .project import parse_document
                 if args.deck_action=='resume':result=batch_pages.resume(args.token)
                 else:
                     settings=parse_document(args.settings.read_text(),str(args.settings)) if args.settings else None
                     result=batch_pages.import_pages(args.project,args.plan,args.request_id,settings=settings,after=args.after,allow_duplicates=args.allow_duplicates,width=args.width)
+            elif args.deck_action=='open':
+                from .plan_revision import open_deck
+                result=open_deck(args.project,args.page,width=args.width,render=not args.no_preview)
+            elif args.deck_action=='review':
+                from .review import annotate
+                result=annotate(args.directory,args.page,args.status,args.note)
             elif args.deck_action=='revise':
                 from .revision import revise
                 result=revise(args.project,args.plan,args.output,force=args.force,width=args.width)
@@ -240,7 +272,7 @@ def main(argv=None):
                 from .project import parse_document
                 result=outline(args.project,args.page,parse_document(args.content.read_text(),str(args.content)) if args.content else None)
             elif args.deck_action=='export':
-                result=export_project(args.source,args.output,transition=args.transition,force=args.force,allow_remote=not args.offline,measure_text=True)
+                result=export_project(args.source,args.output,transition=args.transition,force=args.force,allow_remote=not args.offline,measure_text=True,backend=args.backend)
             else:
                 from .page_api import check_deck
                 result = check_deck(args.project)
@@ -256,6 +288,7 @@ def main(argv=None):
             result = export_project(
                 args.source,
                 args.output,
+                backend=args.backend,
                 transition=args.transition,
                 force=args.force,
                 allow_remote=not args.offline,
@@ -283,25 +316,35 @@ def main(argv=None):
                                 str(Path(args.output).resolve().with_suffix(f".page-{number}"))],
                 "scope": "Single-page source/preview loop; final PPTX visual review remains separate",
             }
-        if args.compact:
+        if not args.full:
             from .output import compact_result
             result=compact_result(result)
         print(json.dumps(result, ensure_ascii=False, indent=2))
+        if args.command=='deck' and args.deck_action=='preflight' and args.strict and result.get('warnings'):
+            return 1
         if (args.command=='page' and args.page_action in ('check','check-overlap') and
                 result.get('status',result.get('geometry',{}).get('status'))=='blocked'):
             return 1
         if result.get('status') in ('blocked','conflict','error'):return 1
         return 0
     except Exception as exc:
+        if args.command=='deck' and args.deck_action=='preflight':
+            print(json.dumps({'format':'source-preflight-v1','status':'blocked','stage':'source-only',
+                              'errors':1,'warnings':0,'issues':[{'page':None,'element':None,
+                              'severity':'error','code':'input-invalid','message':str(exc)}]},ensure_ascii=False,indent=2))
+            return 1
         work_command=(args.command=='page' and (getattr(args,'page_action',None) in ('open','update','resume','rebase') or
                       (getattr(args,'page_action',None) in ('insert','split','merge','move','remove') and args.token is None)))
-        work_command=work_command or (args.command=='deck' and (getattr(args,'deck_action',None) in ('outline','export','brief','directive','revise','import-pages','resume') or
+        work_command=work_command or (args.command=='deck' and (getattr(args,'deck_action',None) in ('outline','export','brief','directive','revise','import-pages','resume','open','review') or
                                                               (getattr(args,'deck_action',None)=='create' and args.project is not None)))
         if work_command:
             from .gates import attach
+            report = getattr(exc,'report',None)
+            source_report = isinstance(report,dict) and report.get('format') == 'source-preflight-v1'
             print(json.dumps(attach({'format':'page-work-v1','status':'error','applied':None,
                               'issues':[{'kind':type(exc).__name__,'message':str(exc)}],
-                              'textFit':getattr(exc,'report',None),
+                              'textFit':None if source_report else report,
+                              **({'sourcePreflight':report} if source_report else {}),
                               'work':str(getattr(args,'work',getattr(args,'session',''))) or None,
                               'next':{'hint':'Correct the input or reopen current sources after an interrupted write; retained work is not deleted.'}}),ensure_ascii=False,indent=2))
             return 1

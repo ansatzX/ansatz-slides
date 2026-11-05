@@ -89,7 +89,7 @@ class WorkObjectTests(unittest.TestCase):
         self.assertFalse(blocked['applied']);self.assertIn('layout-only',str(blocked['issues']))
         path=self.root/'layout.json';path.write_text(json.dumps(layout))
         with redirect_stdout(io.StringIO()) as stream:
-            code=main(['page','update',opened['work'],'--layout',str(path)])
+            code=main(['--full','page','update',opened['work'],'--layout',str(path)])
         self.assertEqual(0,code,stream.getvalue())
         result=json.loads(stream.getvalue())
         self.assertTrue(result['applied'],result['issues'])
@@ -98,7 +98,7 @@ class WorkObjectTests(unittest.TestCase):
     def test_compact_multi_open_retains_directives_and_source_but_not_matrices(self):
         out=io.StringIO()
         with redirect_stdout(out):
-            code=main(['--compact','page','open',str(self.project),'--page','1','--page','2','--no-preview'])
+            code=main(['page','open',str(self.project),'--page','1','--page','2','--no-preview'])
         self.assertEqual(0,code);results=json.loads(out.getvalue())['pages']
         self.assertEqual(2,len(results))
         for result in results:
@@ -106,25 +106,28 @@ class WorkObjectTests(unittest.TestCase):
             self.assertIn('narrative',result['context'])
             self.assertNotIn('matrices',result['candidates'][0]['geometry'])
             full=json.loads(Path(result['revisionEvidence']).read_text())
-            self.assertIn('matrices',full['candidates'][0]['geometry'])
+            self.assertNotIn('matrices',full['candidates'][0]['geometry'])
+            self.assertIn('elements',full['candidates'][0]['geometry'])
         first=work.update(results[0]['work'],element='title',changes={'content':{'text':'First'}})
         second=work.update(results[1]['work'],element='title',changes={'content':{'text':'Second'}})
         self.assertTrue(first['applied']);self.assertTrue(second['applied'])
 
-    def test_open_returns_one_page_matrix_and_context_without_token(self):
+    def test_open_returns_geometry_without_grid_and_context_without_token(self):
         r=work.open_page(self.project,1)
         self.assertEqual('ready',r['status']);self.assertNotIn('token',r)
         self.assertNotIn('PRIVATE_OTHER_BODY',json.dumps(r))
-        m=r['candidates'][0]['geometry']['matrices'];counts=decode(m,'counts');binary=decode(m,'occupancy')
-        self.assertEqual([20,20],m['shape']);self.assertEqual(20,len(counts));self.assertEqual(20,len(counts[0]))
-        self.assertEqual([[int(x>0) for x in row] for row in counts],binary)
+        self.assertEqual('passed',r['candidates'][0]['geometry']['status'])
+        self.assertNotIn('matrices',r['candidates'][0]['geometry'])
+        self.assertFalse(list(Path(r['work']).rglob('*.tsv.gz')))
 
     def test_blocked_candidate_is_retained_and_repaired_without_resubmitting_page(self):
         r=work.open_page(self.project,1);before=self.sources()
         bad=work.update(r['work'],element='body',changes={'bounds':[1,2,8,3],'content':{'text':'Retain this new text'}})
         self.assertEqual('blocked',bad['status']);self.assertFalse(bad['applied']);self.assertEqual(before,self.sources())
-        m=bad['candidates'][0]['geometry']['matrices'];self.assertEqual(2,decode(m,'counts')[2][1])
-        self.assertTrue(m['conflictRegions']);self.assertTrue(Path(bad['candidates'][0]['editable']).exists())
+        conflicts=bad['candidates'][0]['geometry']['unapprovedOverlaps']
+        self.assertEqual(['title','body'],conflicts[0]['elements'])
+        self.assertEqual([1,2,8,2],conflicts[0]['intersection'])
+        self.assertTrue(Path(bad['candidates'][0]['editable']).exists())
         fixed=work.update(bad['work'],element='body',changes={'bounds':[1,8,8,3]})
         self.assertEqual('applied',fixed['status']);self.assertTrue(fixed['applied'])
         self.assertEqual('Retain this new text',fixed['candidates'][0]['page']['elements'][1]['content']['text'])
@@ -141,7 +144,7 @@ class WorkObjectTests(unittest.TestCase):
         self.assertEqual('conflict',work.update(newer['work'])['status'])
         self.assertIn('External',(self.project/'1.page.yaml').read_text())
 
-    def test_render_failure_retains_candidate_and_matrix_then_retry_applies(self):
+    def test_render_failure_retains_candidate_then_retry_applies(self):
         r=work.open_page(self.project,1);before=self.sources()
         with patch('ansatz_slide.page_api.render_pptx',side_effect=RuntimeError('Office unavailable')):
             bad=work.update(r['work'],element='body',changes={'content':{'text':'New text'}})
@@ -153,7 +156,7 @@ class WorkObjectTests(unittest.TestCase):
         target=self.root/'new-deck'
         bad=work.create(target,self.settings,page(True))
         self.assertEqual('blocked',bad['status']);self.assertFalse((target/'pptx.yaml').exists())
-        self.assertTrue(bad['candidates'][0]['geometry']['matrices'])
+        self.assertTrue(bad['candidates'][0]['geometry']['unapprovedOverlaps'])
         good=work.update(bad['work'],element='body',changes={'bounds':[1,8,8,3]})
         self.assertEqual('applied',good['status']);self.assertTrue((target/'pptx.yaml').exists())
         self.assertEqual('applied',work.update(good['work'],element='body',changes={'content':{'text':'Next'}})['status'])
@@ -236,13 +239,13 @@ class WorkObjectTests(unittest.TestCase):
         self.assertEqual('applied',fixed['status'],fixed['issues'])
         self.assertEqual(2,len(parse_document((self.root/'fresh'/'pptx.yaml').read_text(), "test source")['pages']))
 
-    def test_structural_failure_returns_matrix_of_other_blocking_page(self):
+    def test_structural_failure_identifies_other_blocking_page(self):
         self.write('2.page.yaml',page(True))
         r=work.open_page(self.project,1);new=self.write('insert.page.yaml',page())
         blocked=work.change(r['work'],'insert',[new],allow_duplicates=True)
         self.assertEqual('blocked',blocked['status'])
         self.assertEqual(2,blocked['blockingPages'][0]['page'])
-        self.assertEqual(2,decode(blocked['blockingPages'][0]['geometry']['matrices'],'counts')[2][1])
+        self.assertEqual(['title','body'],blocked['blockingPages'][0]['geometry']['unapprovedOverlaps'][0]['elements'])
 
     def test_three_page_logic_has_explicit_roles_and_separate_live_constraints(self):
         manifest=parse_document((self.project/'pptx.yaml').read_text(), "test source");manifest['pages'].append('3.page.yaml')

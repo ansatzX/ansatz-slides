@@ -50,7 +50,7 @@ def require_pages(size, pages):
     """Recompute from current in-memory inputs; no receipt or skip flag is trusted."""
     reports=[]
     for number,page in enumerate(pages,1):
-        report,_=analyze(size,page,max(1,max(size)/2000))
+        report=check_geometry(size,page)
         require_pass(report,f'page {number}')
         reports.append(report)
     return reports
@@ -75,18 +75,12 @@ def envelope(element):
     return [x+(w-rw)/2,y+(h-rh)/2,rw,rh]
 
 
-def analyze(size, page, cell_size=1):
-    if not math.isfinite(cell_size) or cell_size<=0:
-        raise ValueError('cell-size must be finite and positive')
+def check_geometry(size, page):
+    """Exact rectangle gate, independent of canvas pixel count; no raster allocation."""
     width,height=size
     if any(not math.isfinite(v) or v<=0 for v in size):
         raise GeometryError('Canvas dimensions must be finite and positive')
     allowed=overlap_declarations(page)
-    cols,rows=math.ceil(width/cell_size),math.ceil(height/cell_size)
-    if cols*rows>4_000_000:
-        raise ValueError('Occupancy grid exceeds 4000000 cells; increase --cell-size')
-    stride=cols+1
-    diff=array('i',[0])*((rows+1)*stride)
     boxes=[];outside=[];degenerate=[]
     for e in page.get('elements',[]):
         bounds=e.get('bounds')
@@ -105,20 +99,6 @@ def analyze(size, page, cell_size=1):
         if x<0 or y<0 or right>width or bottom>height:outside.append(item)
         if w<=0 or h<=0:
             degenerate.append(e['elementId']);continue
-        x0=max(0,min(cols,math.floor(x/cell_size)))
-        y0=max(0,min(rows,math.floor(y/cell_size)))
-        x1=max(0,min(cols,math.ceil(right/cell_size)))
-        y1=max(0,min(rows,math.ceil(bottom/cell_size)))
-        if x1<=x0 or y1<=y0:continue
-        diff[y0*stride+x0]+=1;diff[y0*stride+x1]-=1
-        diff[y1*stride+x0]-=1;diff[y1*stride+x1]+=1
-    counts=array('I',[0])*(rows*cols)
-    for y in range(rows):
-        across=0
-        for x in range(cols):
-            idx=y*stride+x;across+=diff[idx]
-            diff[idx]=across+(diff[idx-stride] if y else 0)
-            counts[y*cols+x]=diff[idx]
     overlaps=[]
     for i,a in enumerate(boxes):
         ax,ay,aw,ah=a['envelope']
@@ -136,18 +116,58 @@ def analyze(size, page, cell_size=1):
         if reason is None:unapproved.append(overlap)
         else:approved.append({**overlap,'reason':reason})
     invalid_degenerate=[e['elementId'] for e in boxes if e['elementId'] in degenerate and e['elementType']!='line']
-    report={'canvas':size,'cellSize':cell_size,'matrixShape':[rows,cols],
-            'matrixIndex':'matrix[row=y][column=x]; origin at top left',
-            'elementCount':len(boxes),'elements':boxes,'overlaps':overlaps,
+    report={'canvas':size,'elementCount':len(boxes),'elements':boxes,'overlaps':overlaps,
             'outOfBounds':outside,'degenerateBounds':degenerate,
             'status':'blocked' if unapproved or outside or invalid_degenerate else 'passed',
             'unapprovedOverlaps':unapproved,'approvedOverlaps':approved,
             'invalidDegenerateBounds':invalid_degenerate,
-            'occupiedCells':sum(v>0 for v in counts),'overlapCells':sum(v>1 for v in counts),
-            'maxOccupancy':max(counts,default=0),
             'interpretation':'Mandatory geometry gate: no out-of-bounds elements or undeclared positive-area overlaps. Intentional overlap requires an explicit pair and reason; passing is not visual acceptance.',
             'limits':'Uses rectangular envelopes, conservatively enlarged for rotation. Does not measure glyph ink, image transparency, stroke width, shadows or text overflow. Zero-area bounds are listed separately. Fractional boundaries can share raster cells without positive geometric intersection.'}
+    return report
+
+
+def analyze(size, page, cell_size=1):
+    """Explicit diagnostic raster; shares all acceptance decisions with the fast gate."""
+    if not math.isfinite(cell_size) or cell_size<=0:
+        raise ValueError('cell-size must be finite and positive')
+    report=check_geometry(size,page)
+    width,height=size
+    cols,rows=math.ceil(width/cell_size),math.ceil(height/cell_size)
+    if cols*rows>4_000_000:
+        raise ValueError('Occupancy grid exceeds 4000000 cells; increase --cell-size')
+    stride=cols+1
+    diff=array('i',[0])*((rows+1)*stride)
+    for item in report['elements']:
+        x,y,w,h=item['envelope']
+        if w<=0 or h<=0:continue
+        x0=max(0,min(cols,math.floor(x/cell_size)))
+        y0=max(0,min(rows,math.floor(y/cell_size)))
+        x1=max(0,min(cols,math.ceil((x+w)/cell_size)))
+        y1=max(0,min(rows,math.ceil((y+h)/cell_size)))
+        if x1<=x0 or y1<=y0:continue
+        diff[y0*stride+x0]+=1;diff[y0*stride+x1]-=1
+        diff[y1*stride+x0]-=1;diff[y1*stride+x1]+=1
+    counts=array('I',[0])*(rows*cols)
+    for y in range(rows):
+        across=0
+        for x in range(cols):
+            idx=y*stride+x;across+=diff[idx]
+            diff[idx]=across+(diff[idx-stride] if y else 0)
+            counts[y*cols+x]=diff[idx]
+    report.update(cellSize=cell_size,matrixShape=[rows,cols],
+                  matrixIndex='matrix[row=y][column=x]; origin at top left',
+                  occupiedCells=sum(v>0 for v in counts),overlapCells=sum(v>1 for v in counts),
+                  maxOccupancy=max(counts,default=0))
     return report,counts
+
+
+def write_geometry(size,page,folder):
+    report=check_geometry(size,page)
+    folder=Path(folder)
+    folder.mkdir(parents=True,exist_ok=False)
+    report['files']={'report':str((folder/'report.json').absolute())}
+    (folder/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+    return report
 
 
 def write_precheck(size,page,folder,cell_size=1):

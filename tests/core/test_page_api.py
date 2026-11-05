@@ -64,7 +64,7 @@ class PageAPITests(unittest.TestCase):
         self.assertEqual(1,inspect_pptx(r['previewPptx'])['pageCount'])
         for filename in r['geometry']['files'].values():
             self.assertTrue(Path(filename).is_file())
-        geometry_report=Path(r['geometry']['files']['occupancyImage']).with_name('report.json')
+        geometry_report=Path(r['geometry']['files']['report']).with_name('report.json')
         self.assertEqual(r['geometry'],parse_document(geometry_report.read_text(), "test source"))
         self.assertNotIn('PRIVATE_BODY',json.dumps(page_api.check_deck(self.project)))
 

@@ -123,7 +123,7 @@ class GeometryGateTests(unittest.TestCase):
             r=page_api.check_page(self.root/'pptx.yaml',1,session)
         self.assertEqual('blocked',r['geometry']['status']);self.assertIsNone(r['image']);self.assertIsNone(r['previewPptx'])
         self.assertFalse(list(session.rglob('*.pptx')))
-        self.assertTrue(Path(r['geometry']['files']['overlapImage']).is_file())
+        self.assertTrue(Path(r['geometry']['files']['report']).is_file())
         with patch('ansatz_slide.page_api.render_pptx',side_effect=fake_render):
             fixed=page_api.edit_page(session,r['token'],element_id='b',changes={'bounds':[8,1,5,5]})
         self.assertEqual('passed',fixed['geometry']['status']);self.assertTrue(Path(fixed['previewPptx']).is_file())

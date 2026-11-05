@@ -22,6 +22,9 @@ def revise(project, plan_path, output, *, force=False, width=1600):
     snap=api.snapshot(project)
     plan_path=Path(plan_path).resolve()
     plan=parse_document(plan_path.read_text(encoding='utf-8'),str(plan_path))
+    if isinstance(plan,dict):
+        from .plan_revision import revise as revise_plan
+        return revise_plan(project,plan_path,plan,output,force=force,width=width)
     if not isinstance(plan,list) or not plan:raise ValueError('Revision plan must be a nonempty list')
     output=Path(output).expanduser().resolve()
     protected=set(snap['tracked'])|{str(plan_path)}
@@ -102,6 +105,10 @@ def revise(project, plan_path, output, *, force=False, width=1600):
                                    'changedPageImages':[str(images[n-1]) for n in sorted(numbers)],
                                    'visualReview':'not performed; open changedPageImages before delivery'})
             result['export']['output']=str(output)
+            from .review import write as write_review
+            final_snap=api.snapshot(project)
+            result['review']=write_review(folder,final_snap,final_snap['pages'],images,[],
+                                          changed=numbers,pptx=output,delivered=True)
     except Exception as exc:
         result['issues'].append({'kind':type(exc).__name__,'message':str(exc)})
     result['elapsedSeconds']=round(time.perf_counter()-started,4)

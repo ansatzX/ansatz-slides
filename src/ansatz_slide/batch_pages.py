@@ -88,11 +88,16 @@ def resume(token):
             settings=copy.deepcopy(snap['manifest'] if snap else record['settings'])
             fake={'root':root,'manifest':{**settings,'pages':[str(Path(p).relative_to(root)) for p in record['candidates']]},
                   'pages':candidates,'tracked':record['tracked']}
+            from .validation import validate_project
+            from .preflight import analyze, require_pass as require_sources, summary as source_summary
+            validate_project(fake['manifest'], candidates, root, check_files=False)
+            source_preflight = analyze(settings['size'], candidates, root, allow_remote=False, theme=settings.get('theme'))
+            result['sourcePreflight'] = source_summary(source_preflight)
+            require_sources(source_preflight)
             assets={};previews=[]
             attempt=folder/('attempt-'+uuid.uuid4().hex);attempt.mkdir()
-            for i,candidate in enumerate(candidates,1):
-                result['checkingCandidate']=i
-                evidence=api.preview(fake,i,candidate,attempt,record['width'])
+            evidence_batch = api.preview_batch(fake, candidates, attempt, record['width'])
+            for i,evidence in enumerate(evidence_batch,1):
                 require_pass(evidence['geometry'])
                 for path,digest in evidence['_assetHashes'].items():
                     if path in assets and assets[path]!=digest:raise RuntimeError('Assets changed between previews')
@@ -125,7 +130,13 @@ def resume(token):
             result.update(status='applied',applied=True,pages=previews,pageCount=len(current))
             result['next']['hint']='Batch completed. Resume returns this receipt without inserting again; use a new request-id for further changes.'
         except Exception as exc:
-            if hasattr(exc,'report'):result['textFit']=exc.report
+            if hasattr(exc, 'candidate_number'):result['checkingCandidate']=exc.candidate_number
+            if hasattr(exc,'report'):
+                if exc.report.get('format') == 'source-preflight-v1':
+                    from .preflight import summary as source_summary
+                    result['sourcePreflight'] = source_summary(exc.report)
+                else:
+                    result['textFit']=exc.report
             diagnostic=folder/'execution-error.txt';diagnostic.write_text(traceback.format_exc())
             result.update(issues=[{'message':str(exc),'diagnostic':str(diagnostic)}])
         _save(folder,'result.json',result)

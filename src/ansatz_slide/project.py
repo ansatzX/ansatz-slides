@@ -146,12 +146,12 @@ def find_manifest(source):
     return matches[0]
 
 
-def load_project(source):
+def load_project(source, *, check_files=True):
     manifest_path = find_manifest(source)
-    return _load_manifest(manifest_path)
+    return _load_manifest(manifest_path, check_files=check_files)
 
 
-def _load_manifest(manifest_path):
+def _load_manifest(manifest_path, *, check_files=True):
     root = manifest_path.parent
     manifest = parse_document(
         manifest_path.read_text(encoding="utf-8"), str(manifest_path)
@@ -169,7 +169,7 @@ def _load_manifest(manifest_path):
         if not path.name.lower().endswith(".page.yaml"):
             raise ValidationError(f"Page source must use .page.yaml: {rel}")
         pages.append(parse_document(path.read_text(encoding="utf-8"), str(path)))
-    validate_project(manifest, pages, root)
+    validate_project(manifest, pages, root, check_files=check_files)
     pptd = copy.deepcopy(manifest)
     pptd["pages"] = copy.deepcopy(pages)
     pptd["pptdFileName"] = manifest_path.name
@@ -178,22 +178,23 @@ def _load_manifest(manifest_path):
     return pptd, root
 
 
-def image_objects(value, seen=None):
+def image_objects(value, seen=None, *, with_paths=False):
+    """Walk every image resource, including backgrounds, fills and theme styles."""
     seen = set() if seen is None else seen
-    if isinstance(value, (dict, list)):
-        if id(value) in seen:
-            return
-        seen.add(id(value))
-    if isinstance(value, dict):
-        if value.get("src") and (
-            value.get("elementType") == "image" or value.get("type") == "image"
-        ):
-            yield value
-        for child in value.values():
-            yield from image_objects(child, seen)
-    elif isinstance(value, list):
-        for child in value:
-            yield from image_objects(child, seen)
+    def walk(item, path):
+        if isinstance(item, (dict, list)):
+            if id(item) in seen:
+                return
+            seen.add(id(item))
+        if isinstance(item, dict):
+            if item.get('src') and (item.get('elementType') == 'image' or item.get('type') == 'image'):
+                yield (item, path) if with_paths else item
+            for key, child in item.items():
+                yield from walk(child, path + (key,))
+        elif isinstance(item, list):
+            for index, child in enumerate(item):
+                yield from walk(child, path + (index,))
+    yield from walk(value, ())
 
 
 def resolve_images(pptd, root, *, allow_remote=True, timeout=30):
@@ -319,13 +320,22 @@ def create_project(draft, output):
 
 
 def export_project(
-    source, output, *, transition="fade", force=False, allow_remote=True, measure_text=False
+    source, output, *, transition="fade", force=False, allow_remote=True, measure_text=False, backend="native"
 ):
+    if backend not in {"native", "deckcraft"}:
+        raise ValidationError("Backend must be native or deckcraft")
     if transition not in {"fade", "none"}:
         raise ValidationError("Transition must be fade or none")
     pptd, root = load_project(source)
     from .occupancy import require_pages
     require_pages(pptd['size'], pptd['pages'])
+    from .preflight import analyze, require_pass as require_sources, summary as source_summary
+    source_preflight = analyze(pptd['size'], pptd['pages'], root,
+                               academic=measure_text, allow_remote=allow_remote, include_geometry=False, theme=pptd.get('theme'))
+    require_sources(source_preflight)
+    if backend == 'deckcraft':
+        from .deckcraft import check_source
+        check_source(pptd, transition)
     output = Path(output).expanduser().resolve()
     protected = {find_manifest(source)} | {
         safe_path(root, p["pagePath"], "page") for p in pptd["pages"]
@@ -337,17 +347,37 @@ def export_project(
         raise ValidationError("Output must not overwrite source documents or assets")
     if output.exists() and not force:
         raise FileExistsError(f"Output exists; use --force: {output}")
+    images = None
+    prepared = None
+    if backend == 'deckcraft':
+        # Compile every field and image format before any Office work. The
+        # compiler only constructs commands/paths; it does not create files.
+        from .deckcraft import commands_for
+        prepared = copy.deepcopy(pptd)
+        images = resolve_images(prepared, root, allow_remote=allow_remote)
+        commands_for(prepared, images, output.parent, transition)
     text_fit = None
     if measure_text:
         from .typography import check_loaded
         text_fit = check_loaded(pptd, root)
-    images = resolve_images(pptd, root, allow_remote=allow_remote)
-    data = export_pptx(
-        pptd,
-        {"images": images, "slideTransition": {"effect": transition, "speed": "fast"}},
-    )
+    if prepared is not None:
+        pptd = prepared
+    else:
+        images = resolve_images(pptd, root, allow_remote=allow_remote)
+    if backend == "deckcraft":
+        from .deckcraft import export_bytes
+        output.parent.mkdir(parents=True, exist_ok=True)
+        data = export_bytes(pptd, images, output.parent, transition)
+    else:
+        data = export_pptx(
+            pptd,
+            {"images": images, "slideTransition": {"effect": transition, "speed": "fast"}},
+        )
     from .inspection import inspect_pptx
 
     report = inspect_pptx(data)
+    if report["pageCount"] != len(pptd["pages"]):
+        raise ValidationError("Exported page count does not match source")
     atomic_write(output, data, force)
-    return {"output": str(output), "pageCount": len(pptd["pages"]), "structure": report, **({"textFit":text_fit} if measure_text else {})}
+    return {"backend": backend, "output": str(output), "pageCount": len(pptd["pages"]), "structure": report,
+            "sourcePreflight": source_summary(source_preflight), **({"textFit":text_fit} if measure_text else {})}

@@ -6,7 +6,14 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from ansatz_slide import batch_pages as batch, work_objects as work, page_api as api
-from .test_page_api import fake_render
+from .test_page_api import fake_render, png
+from ansatz_slide.inspection import inspect_pptx
+
+def batch_render(source, folder, width):
+    for number in range(1, inspect_pptx(source)["pageCount"] + 1):
+        (folder / f"page-{number}.png").write_bytes(png())
+    return {"name": "batch test stub; not visual evidence"}
+
 
 BASE=Path(__file__).resolve().parents[2]/'tmp/test-tmp'
 
@@ -19,7 +26,7 @@ class FeedbackWorkflow(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory(dir=BASE);self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name);self.project=self.root/'deck';self.project.mkdir()
         self.settings={'version':'v2','size':[960,540]}
-        for name,side in [('measure_text',{'status':'passed','elements':[]}),('render_pptx',fake_render)]:
+        for name,side in [('measure_text',{'status':'passed','elements':[]}),('render_pptx',batch_render), ('measure_pages',lambda size,pages,theme,folder: [{'status':'passed','elements':[],'page':i} for i,_ in enumerate(pages,1)])]:
             mock=patch('ansatz_slide.page_api.'+name,**({'return_value':side} if isinstance(side,dict) else {'side_effect':side}))
             mock.start();self.addCleanup(mock.stop)
     def plan(self,texts):

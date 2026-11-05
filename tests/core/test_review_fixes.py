@@ -158,7 +158,7 @@ class ReviewFixTests(unittest.TestCase):
         for name in ('work_objects','page_api','occupancy','outline','gates','rendering','file_transactions'):
             path=f'ansatz_slide/{name}.py';self.assertIn(path,required)
             with self.assertRaisesRegex(ValueError,name):verifier.require_present(required-{path},required)
-        self.assertIn('ansatz_slide/skill/reference/review-cli.md',required)
+        self.assertIn('ansatz_slide/skill/reference/production/cli.md',required)
 
     def test_distribution_verifier_rejects_incomplete_archives(self):
         from zipfile import ZipFile
@@ -179,7 +179,7 @@ class ReviewFixTests(unittest.TestCase):
         args=[sys.executable,str(REPO/'scripts/verify_distribution.py'),'--wheel',str(wheel),'--sdist',str(sdist)]
         archives();result=subprocess.run(args,capture_output=True,text=True)
         self.assertEqual(0,result.returncode,result.stderr)
-        for omitted in ('ansatz_slide/work_objects.py','ansatz_slide/skill/reference/review-cli.md'):
+        for omitted in ('ansatz_slide/work_objects.py','ansatz_slide/skill/reference/production/cli.md'):
             archives(omit_wheel=omitted);result=subprocess.run(args,capture_output=True,text=True)
             self.assertNotEqual(0,result.returncode);self.assertIn(omitted,result.stderr)
         archives(omit_source='tests/core/test_review_fixes.py');result=subprocess.run(args,capture_output=True,text=True)

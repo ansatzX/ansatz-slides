@@ -1,5 +1,6 @@
 # Python environments and bytecode
 .venv/
+venv/
 __pycache__/
 *.py[cod]
 *$py.class
@@ -21,6 +22,7 @@ __pycache__/
 .coverage
 .coverage.*
 htmlcov/
+coverage.xml
 
 # Local scratch, research and agent state
 /tmp/
@@ -28,8 +30,20 @@ htmlcov/
 .scripts/
 .state-machine/
 _user_meta.json
+/.kilo/
+/.kilocode/
 
-# Locally retained dependencies from the retired tooling
+# Presentation work, recovery and equation-rendering state
+.ansatz/
+.ansatz-recovery/
+.ansatz-equations/
+.ansatz-page-edit.lock
+
+# Incomplete writes and Office lock files
+.*.partial
+~$*.pptx
+
+# Optional local JavaScript dependencies
 node_modules/
 
 # OS metadata

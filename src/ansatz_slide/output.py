@@ -1,4 +1,4 @@
-"""Opt-in stdout projection; never modifies saved evidence or acceptance gates."""
+"""Default stdout projection; never modifies saved evidence or acceptance gates."""
 import copy
 from pathlib import Path
 
@@ -21,6 +21,8 @@ def compact_result(result):
             if geometry:
                 geometry.pop('matrices',None)
                 geometry.pop('elements',None)
+                geometry.pop('overlaps',None)
+                geometry.pop('approvedOverlaps',None)
     for item in result.get('blockingPages',[]):
         item.get('geometry',{}).pop('matrices',None)
         item.get('geometry',{}).pop('elements',None)

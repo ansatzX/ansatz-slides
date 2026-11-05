@@ -51,4 +51,4 @@ def render_pptx(source, folder, width=1600):
     run_command([poppler, '-scale-to', str(width), '-png', str(pdf), str(folder/'page')], folder)
     shutil.rmtree(folder/'office-profile', ignore_errors=True)
     return {'name': 'LibreOffice + pdftoppm', 'maxPixels': width,
-            'scope': 'static single-page preview; final merged PPTX and native PowerPoint/WPS unverified'}
+            'scope': 'static render of the supplied PPTX; native PowerPoint/WPS unverified'}

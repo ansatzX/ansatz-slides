@@ -8,8 +8,8 @@
 - `skills/ansatz-slide/`：Agent 指令、风格定义和独立 Skill 启动脚本。
 - `tests/`：功能、安装、文档示例与输出回归测试。
 - `scripts/verify_distribution.py`：wheel/sdist 内容检查。
-- `README.md`：安装、命令和项目说明；`theme.md`：风格索引。
-- `docs/README.md`：文档导航及开发验证；`docs/DSL_SUPPORT_MATRIX.md`：能力边界；`docs/themes/`：主题参考图片。
+- `README.md`：安装、命令和项目说明；`theme.md`：唯一学术风格入口。
+- `docs/README.md`：文档导航及开发验证；`docs/DSL_SUPPORT_MATRIX.md`：能力边界。
 
 ## 工作范围
 
@@ -27,17 +27,17 @@
 
 ## 指令与素材
 
-只读取任务需要的场景和风格。按 `reference/design-system-inventory.md` 选择主定义，同名备选仅按明确路径选择，不混用。风格规则不能覆盖用户事实、模板、授权范围及可执行语法。
+只读取任务需要的内容方法、风格及操作参考。新建演示文稿默认使用唯一的 `reference/style.md`；内容方法与视觉排版分开维护，不恢复旧主题或同名备选。风格规则不能覆盖用户事实、模板、授权范围及可执行语法。
 
-- `reference/authoring-start.md`：可执行最小示例。
-- `reference/presentation-schema.md`：字段格式与兼容边界。
-- `reference/source-workflow.md`：原始材料到结构化源文件的流程。
-- `reference/operations.md`、`reference/page-edit.md`、`reference/delivery-checks.md`：运行、单页修改及交付。
-- `reference/review-cli.md`：page open/update 工作对象、失败候选与矩阵、局部分页，以及 deck create/outline/export；旧 session/token 接口见 review-cli-legacy.md。
+- `reference/content.md`：内容组织与讲解示例。
+- `reference/style.md`：唯一视觉规范。
+- `reference/production.md`：环境、源项目与最小示例；`reference/production/` 为 CLI、公式与二进制单页替换附录。
+- `reference/review.md`：实际页面审阅与交付。
+- `reference/technical.md`：字段与能力边界；`reference/technical/shapes.md` 为形状参数表。
 
 上述路径均相对 `skills/ansatz-slide/`。行为修改要同步对应指令和测试，避免复制多套规则。
 
-图表、照片和数据来自用户或适当的外部工具；导出器负责排版与标注。缺少证据时明确占位，不制造事实。主题缩略图仅作风格参考，不能作为当前导出效果的证明。学术报告默认不加元素动画；不需要切页动画时使用 `--transition none`。
+图表、照片和数据来自用户或适当的外部工具；导出器负责排版与标注。缺少证据时明确占位，不制造事实。参考 PPTX 用于提炼方法与排版，不能作为当前导出效果的证明。学术报告默认不加元素动画；不需要切页动画时使用 `--transition none`。
 
 ## 页面保护与验收
 

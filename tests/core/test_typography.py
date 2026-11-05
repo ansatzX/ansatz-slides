@@ -105,7 +105,10 @@ class TypographyTests(unittest.TestCase):
         self.assertEqual('middle',a['alignmentMeasured'])
         self.assertGreaterEqual(a['measuredBounds'][1],0)
         self.assertLess(a['unrestrictedBounds'][1],-.5)
-        self.assertEqual('overflow',b['status'])
+        self.assertEqual('passed',b['status'],b)
+        self.assertLess(b['measuredBounds'][1],-.5)
+        self.assertGreaterEqual(b['inkBounds'][1],0)
+        self.assertIn('top',b['metricOverflowEdges'])
         self.assertNotEqual('passed',c['status'])
 
     def test_bottom_alignment_and_wrapped_overflow_remain_checked(self):

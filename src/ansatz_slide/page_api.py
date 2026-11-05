@@ -16,7 +16,7 @@ from .inspection import inspect_pptx
 from .project import find_manifest, parse_document, image_objects, resolve_images, atomic_write, source_bytes
 from .file_transactions import preserving_replace
 from .rendering import render_pptx
-from .typography import check_page as measure_text, require_pass as require_text
+from .typography import check_page as measure_text, check_pages as measure_pages, require_pass as require_text
 from .validation import validate_project, safe_path
 
 
@@ -173,9 +173,8 @@ def preview(snap, number, candidate, session, width):
     versions = session/'versions'; versions.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='.preview-', dir=versions) as scratch:
         stage = Path(scratch).resolve()
-        from .occupancy import write_precheck
-        geometry = write_precheck(snap['manifest']['size'], candidate, stage/'geometry',
-                                  max(1, max(snap['manifest']['size'])/2000))
+        from .occupancy import write_geometry
+        geometry = write_geometry(snap['manifest']['size'], candidate, stage/'geometry')
         image_name = None
         typography = None
         renderer = {'name':None, 'reason':'Geometry precheck blocked; no PPTX or Office render created'}
@@ -204,6 +203,60 @@ def preview(snap, number, candidate, session, width):
             'renderer': renderer, 'geometry':geometry, 'typography':typography, '_assetHashes':assets}
 
 
+def preview_batch(snap, candidates, session, width):
+    """Check a candidate batch and render bounded groups, without publishing it."""
+    from .occupancy import write_geometry, require_pass
+    validate_project(snap['manifest'], candidates, snap['root'])
+    selected = {**copy.deepcopy(snap['manifest']), 'pages': copy.deepcopy(candidates)}
+    assets = {}
+    for image in image_objects(selected):
+        if not re.match(r'(?i)^(data:|https?://)', image['src']):
+            path = safe_path(snap['root'], image['src'], 'image')
+            assets[str(path)] = sha(path.read_bytes())
+    geometries = []
+    for number, candidate in enumerate(candidates, 1):
+        geometry = write_geometry(snap['manifest']['size'], candidate,
+                                  session / f'geometry-{number}')
+        try:
+            require_pass(geometry, label=f'candidate {number}')
+        except Exception as exc:
+            exc.candidate_number = number
+            raise
+        geometries.append(geometry)
+    reports = measure_pages(snap['manifest']['size'], candidates,
+                            snap['manifest'].get('theme', {}), session / 'text-fit')
+    for report in reports:
+        try:
+            require_text(report)
+        except Exception as exc:
+            exc.candidate_number = report['page']
+            raise
+    evidence = []
+    for start in range(0, len(candidates), 16):
+        group = candidates[start:start + 16]
+        stage = session / f'render-{start + 1}'
+        stage.mkdir()
+        rendered = {**selected, 'pages': copy.deepcopy(group)}
+        data = export_pptx(rendered, {'images': resolve_images(rendered, snap['root'], allow_remote=False),
+                                     'slideTransition': {'effect': 'none', 'speed': 'fast'}})
+        if inspect_pptx(data)['pageCount'] != len(group):
+            raise RuntimeError('Batch preview page count mismatch')
+        (stage / 'pages.pptx').write_bytes(data)
+        renderer = render_pptx(stage / 'pages.pptx', stage, width)
+        images = sorted(stage.glob('page-*.png'), key=lambda p: int(p.stem.split('-')[-1]))
+        if len(images) != len(group) or any(not image.read_bytes().startswith(b'\x89PNG\r\n\x1a\n') for image in images):
+            raise RuntimeError('Batch renderer must produce one PNG per candidate')
+        for offset, image in enumerate(images):
+            index = start + offset
+            evidence.append({'image': str(image.relative_to(session)),
+                             'previewPptx': str((stage / 'pages.pptx').relative_to(session)),
+                             'renderer': renderer, 'geometry': geometries[index],
+                             'typography': reports[index], '_assetHashes': assets})
+    if not unchanged(snap['tracked']) or not unchanged(assets):
+        raise RuntimeError('Source or assets changed during batch preview; retry')
+    return evidence
+
+
 def response(session, state, snap):
     number = state['page']
     return {'session': str(session), 'page': number, 'pageCount': len(snap['pages']),
@@ -214,7 +267,7 @@ def response(session, state, snap):
             'image': str(session/state['image']) if state['image'] else None,
             'previewPptx': str(session/state['previewPptx']) if state['previewPptx'] else None,
             'renderer': state['renderer'], 'geometry':state['geometry'], 'typography':state.get('typography'),
-            'focus': ('Fix geometry using the editable page and grayscale diagnostics; no PPTX is generated until it passes.'
+            'focus': ('Fix geometry using the editable page and geometry issues; no PPTX is generated until it passes.'
                       if state['geometry']['status']=='blocked' else
                       'Open this page image. Check its claim/evidence and layout; use page patch for one element or page edit for page composition, then inspect the returned image.'),
             'nextCommand': ['ansatz-slide', 'page', 'edit', str(session), '--token', state['token']]}

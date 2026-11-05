@@ -7,7 +7,7 @@ import traceback
 
 from . import page_api as api
 from . import outline
-from .occupancy import write_precheck, matrix_payload, require_pass
+from .occupancy import write_geometry, check_geometry, require_pass
 from .project import atomic_write, parse_document, source_bytes, manifest_paths
 from .validation import validate_project
 from .gates import attach as attach_gates
@@ -122,14 +122,17 @@ def _candidates(work,record,snap):
         path=work/f'candidate-{i}.page.yaml';atomic_write(path,api.json_bytes(candidate))
         item={'index':i,'page':candidate,'editable':str(path),'geometry':None,'preview':None}
         try:
-            geometry=write_precheck(size,candidate,work/f'geometry-{i}')
-            geometry['matrices']=matrix_payload(geometry)
+            geometry=write_geometry(size,candidate,work/f'geometry-{i}')
             item['geometry']=geometry
         except Exception as exc:
             issues.append({'candidate':i,'kind':'geometry-input','message':str(exc)})
         try:
             manifest={**(record['settings'] if snap is None else snap['manifest']),'pages':[str(path.relative_to(root))]}
             validate_project(manifest,[candidate],root)
+            from .preflight import analyze, require_pass as require_sources, summary as source_summary
+            source_preflight = analyze(size, [candidate], root, allow_remote=False, theme=manifest.get('theme'))
+            item['sourcePreflight'] = source_summary(source_preflight)
+            require_sources(source_preflight)
         except Exception as exc:
             issues.append({'candidate':i,'kind':'schema','message':str(exc)})
         if item['geometry'] is not None and item['geometry']['status']=='blocked':
@@ -262,13 +265,11 @@ def _process(work,record,snap,*,apply,render=True):
             diagnostic.write_text(traceback.format_exc(),encoding='utf-8')
             result['issues'].append({'kind':'execution','message':str(exc),'diagnostic':str(diagnostic)})
             if not result['applied'] and snap is not None and 'Geometry precheck failed' in str(exc):
-                from .occupancy import analyze
                 result['blockingPages']=[]
                 for number,page in enumerate(snap['pages'],1):
-                    report,_=analyze(snap['manifest']['size'],page)
+                    report=check_geometry(snap['manifest']['size'],page)
                     if report['status']=='blocked':
-                        report=write_precheck(snap['manifest']['size'],page,work/f'blocking-page-{number}')
-                        report['matrices']=matrix_payload(report)
+                        report=write_geometry(snap['manifest']['size'],page,work/f'blocking-page-{number}')
                         result['blockingPages'].append({'page':number,'source':str(snap['paths'][number-1]),'geometry':report})
     if not apply and not render:
         result['previewStatus']='not_requested'
