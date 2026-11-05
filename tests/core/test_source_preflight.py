@@ -79,6 +79,19 @@ class SourcePreflightTests(unittest.TestCase):
         self.assertEqual(before, {p: p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
         self.assertFalse(self.project.exists())
 
+    def test_flattened_math_diagnostic_recommends_formal_typesetting(self):
+        page=self.fixed()
+        page['elements'][2]['content']['text']='S1'
+        self.candidates(page)
+        report=self.run_check()
+        warning=next(i for i in report['issues'] if i['code']=='plain-math')
+        self.assertEqual(['S1'],warning['tokens'])
+        self.assertEqual('warning',warning['severity'])
+        self.assertIn('LaTeX',warning['message'])
+        self.assertIn('retained TeX',warning['message'])
+        self.assertIn('HTML sub/sup alone is not formal math',warning['message'])
+        self.assertEqual(0,report['errors'])
+
     def test_typeset_math_assets_with_sources_clear_the_advisories(self):
         self.candidates(self.fixed())
         report = self.run_check()

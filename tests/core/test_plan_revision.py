@@ -48,6 +48,42 @@ class PlanRevisionTests(unittest.TestCase):
         self.assertTrue(Path(result['base']).exists())
         self.assertIn('preview unavailable',result['issues'][0]['message'])
 
+    def test_source_warnings_reach_review_without_blocking_publication(self):
+        result=revise(self.project,self.plan,self.output)
+        self.assertTrue(result['exported'],result['issues'])
+        self.assertEqual([],result['issues'])
+        warnings=result['sourcePreflight']['issues']
+        self.assertTrue(any(i['code']=='citation-review' for i in warnings))
+        data=json.loads(Path(result['review']['manifest']).read_text())
+        for row in data['pages']:
+            expected=[i for i in warnings if i.get('page') in (None,row['page'])]
+            self.assertEqual(expected,row['sourceIssues'])
+            self.assertEqual([],row['issues'])
+            self.assertEqual('not_reviewed',row['visual']['status'])
+        # The same findings must survive a review note and be embedded in the viewer.
+        folder=Path(result['review']['manifest']).parent
+        annotate(folder,1,'reviewed','Checked the rendered page and source hints')
+        saved=json.loads((folder/'review.json').read_text())
+        self.assertEqual(data['pages'][0]['sourceIssues'],saved['pages'][0]['sourceIssues'])
+        html=(folder/'index.html').read_text()
+        embedded=html.split('const data=',1)[1].split(';let selected=',1)[0]
+        self.assertEqual(saved,json.loads(embedded))
+
+    def test_shared_source_findings_are_visible_on_each_affected_page(self):
+        from ansatz_slide.review import write
+        from ansatz_slide.page_api import snapshot
+        snap=snapshot(self.project)
+        shared={'page':None,'element':None,'severity':'warning','code':'remote-asset',
+                'field':'theme.background.src','message':'Prepare the shared asset locally.'}
+        local={'page':2,'element':'title','severity':'warning','code':'section-title',
+               'message':'Review the section and title.'}
+        report=write(self.root/'shared-review',snap,snap['pages'],[],[],
+                     source_preflight={'issues':[shared,local]})
+        pages=json.loads(Path(report['manifest']).read_text())['pages']
+        self.assertEqual([shared],pages[0]['sourceIssues'])
+        self.assertEqual([shared,local],pages[1]['sourceIssues'])
+        self.assertEqual([shared],pages[2]['sourceIssues'])
+
     def test_write_failure_rolls_back_earlier_source_and_retries_same_plan(self):
         from ansatz_slide.file_transactions import preserving_replace
         before={p:p.read_bytes() for p in self.project.glob('*.yaml')}

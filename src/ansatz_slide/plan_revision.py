@@ -193,7 +193,7 @@ def revise(project, plan_path, document, output, *, force=False, width=1600):
         result['narrative']=narrative.view(final_snap)
         result['review']=review.write(attempt/'review',{**snap,'tracked':expected if result['exported'] else snap['tracked']},candidates,images,issues,
                                      changed=numbers,checks=checks,pptx=output if result['exported'] else candidate_pptx,
-                                     delivered=result['exported'])
+                                     delivered=result['exported'],source_preflight=result.get('sourcePreflight'))
         result['elapsedSeconds']=round(time.perf_counter()-started,4)
         atomic_write(attempt/'result.json',api.json_bytes(result))
         atomic_write(folder/'result.json',api.json_bytes(result),force=True)

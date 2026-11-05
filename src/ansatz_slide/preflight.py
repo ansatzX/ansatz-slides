@@ -128,7 +128,7 @@ def analyze(size, pages, root, *, numbers=None, academic=True, allow_remote=True
             for e, t in texts:
                 tokens = sorted({m.group() for part in t.unformatted for m in _PLAIN_MATH.finditer(part)})
                 if tokens:
-                    issue(n, 'plain-math', 'Possible flattened math indices; compare with the formal formula and use sub/sup formatting where appropriate.', e['elementId'], tokens=tokens)
+                    issue(n, 'plain-math', 'Possible flattened math indices. Typeset mathematical symbols/indices from LaTeX using the supported equation workflow (PNG + retained TeX); HTML sub/sup alone is not formal math. Review non-mathematical uses manually.', e['elementId'], tokens=tokens)
                 if re.search(r'\\(?:frac|sqrt|sigma|tau)\b', e['content']['text']):
                     issue(n, 'latex-review', 'Check whether this LaTeX is actually typeset on the selected production route.', e['elementId'])
             math_texts = [(e['elementId'], t, None) for e, t in texts]
